@@ -1,35 +1,49 @@
-// Adicionamos estes "usings" para o Entity Framework Core e nossa pasta Data
-using Microsoft.EntityFrameworkCore;
 using Lead2Buy.API.Data;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Lead2Buy.API.Hubs;
 using Lead2Buy.API.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- INÍCIO: Adicionar serviços ao contêiner ---
+// --- Adicionar serviços ao contêiner ---
 
-// 1. Lemos a string de conexão do arquivo appsettings.json
+builder.Services.AddHttpClient("OllamaClient", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(300);
+});
+
+var corsOrigin = builder.Configuration["CORS_ORIGIN"];
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowVueApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:8080", "http://localhost:5173", corsOrigin ?? "")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
-// 2. Registramos o AppDbContext, configurando-o para usar o PostgreSQL
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-// Serviços que já vêm por padrão no template da API
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddHostedService<OcrProcessingService>();
+
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
 });
+
+builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    // Define as informações básicas do Swagger
     options.SwaggerDoc("v1", new() { Title = "Lead2Buy API", Version = "v1" });
-    
-    // Define o esquema de segurança que a API usa (Bearer = JWT)
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         In = Microsoft.OpenApi.Models.ParameterLocation.Header,
@@ -38,8 +52,6 @@ builder.Services.AddSwaggerGen(options =>
         Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
     });
-
-    // Adiciona o requisito de segurança a todas as operações
     options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
     {
         {
@@ -56,9 +68,6 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-builder.Services.AddHttpClient();
-
-// --- INÍCIO DA CONFIGURAÇÃO DE AUTENTICAÇÃO JWT ---
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -73,31 +82,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = builder.Configuration.GetSection("Jwt:Audience").Value
         };
     });
-// --- FIM DA CONFIGURAÇÃO DE AUTENTICAÇÃO JWT ---
-
-var corsOrigin = builder.Configuration["CORS_ORIGIN"]; // Lê a variável de ambiente
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowVueApp", policy =>
-    {
-        // Permite as URLs de desenvolvimento e a URL de produção vinda da Render
-        policy.WithOrigins("http://localhost:8080", "http://localhost:5173", corsOrigin ?? "")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
-    });
-});
-
-builder.Services.AddSignalR();
-
-// --- FIM: Adicionar serviços ao contêiner ---
-
-builder.Services.AddHostedService<OcrProcessingService>();
 
 var app = builder.Build();
 
-// Configurar o pipeline de requisições HTTP (middleware).
+// --- Configurar o pipeline de requisições HTTP ---
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -105,15 +94,31 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseCors("AllowVueApp");
-
 app.UseAuthentication();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.MapHub<NotificationHub>("/notificationHub");
+
+// --- INÍCIO DA NOVA LÓGICA DE MIGRAÇÃO AUTOMÁTICA ---
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        // Aplica quaisquer migrações pendentes. Se o banco não existir, ele o cria.
+        context.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Ocorreu um erro durante a migração do banco de dados.");
+        // Opcional: decidir se a aplicação deve parar se a migração falhar.
+        // Para produção, é mais seguro parar.
+        throw;
+    }
+}
+// --- FIM DA NOVA LÓGICA ---
 
 app.Run();
