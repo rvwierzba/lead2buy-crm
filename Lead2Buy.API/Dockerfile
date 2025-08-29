@@ -1,15 +1,17 @@
 # Estágio 1: Build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /app
+WORKDIR /src
 
-# Copia os arquivos de projeto e restaura as dependências
-COPY *.csproj .
-# CORREÇÃO: Especifica o nome do projeto para o restore
-RUN dotnet restore "Lead2Buy.API.csproj"
+# Copia o arquivo .csproj da pasta da API para uma pasta correspondente no container
+COPY ["Lead2Buy.API/Lead2Buy.API.csproj", "Lead2Buy.API/"]
 
-# Copia o resto do código fonte e publica a aplicação
+# Restaura as dependências do projeto que acabamos de copiar
+RUN dotnet restore "Lead2Buy.API/Lead2Buy.API.csproj"
+
+# Copia todo o resto do código fonte
 COPY . .
-RUN dotnet publish -c Release -o /app/publish
+WORKDIR "/src/Lead2Buy.API"
+RUN dotnet publish "Lead2Buy.API.csproj" -c Release -o /app/publish
 
 # Estágio 2: Final
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
