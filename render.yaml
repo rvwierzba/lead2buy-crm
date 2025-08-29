@@ -21,16 +21,13 @@ services:
       - key: CORS_ORIGIN
         value: https://${lead2buy-frontend.host}
 
-  # 2. Serviço do Ollama com IA (COMO SERVIÇO WEB)
-  - type: web 
+  # 2. Serviço do Ollama com IA
+  - type: web
     name: lead2buy-ollama
     plan: free
     env: docker
     dockerfilePath: ./ollama/Dockerfile
-    # Adicionamos uma verificação de saúde para a Render saber quando o serviço está pronto
-    healthCheck:
-      path: /
-      initialDelaySeconds: 120 # Dá tempo para o modelo baixar na primeira vez
+    # A SEÇÃO healthCheck FOI REMOVIDA DAQUI
 
   # 3. Serviço do Frontend Vue.js
   - type: web
