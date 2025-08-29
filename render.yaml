@@ -2,7 +2,7 @@ services:
   # 1. Serviço da API .NET (Nosso Back-end)
   - type: web
     name: lead2buy-api
-    plan: free
+    plan: free # Serviços web precisam do 'plan'
     env: docker
     dockerfilePath: ./Lead2Buy.API/Dockerfile
     envVars:
@@ -19,32 +19,30 @@ services:
       - key: MailjetApiSecret
         sync: false # Inserir manualmente no painel da Render
       - key: CORS_ORIGIN
-        # CORREÇÃO AQUI: Construímos a URL a partir do host do frontend
         value: https://${lead2buy-frontend.host}
 
   # 2. Serviço do Ollama com IA
   - type: worker
     name: lead2buy-ollama
-    plan: free
+    plan: free # Workers também precisam do 'plan'
     env: docker
     dockerfilePath: ./ollama/Dockerfile
 
   # 3. Serviço do Frontend Vue.js
   - type: web
     name: lead2buy-frontend
-    plan: free
     runtime: static
+    # A LINHA 'plan: free' FOI REMOVIDA DAQUI
     buildCommand: npm --prefix ./lead2buy-frontend install && npm --prefix ./lead2buy-frontend run build
     staticPublishPath: ./lead2buy-frontend/dist
     envVars:
       - key: VITE_API_BASE_URL
-        # CORREÇÃO AQUI: Construímos a URL a partir do host da api
         value: https://${lead2buy-api.host}
 
 # --- SEÇÃO CORRETA PARA BANCOS DE DADOS ---
 databases:
   # 4. Serviço do Banco de Dados PostgreSQL
   - name: lead2buy-postgres
-    plan: free
+    plan: free # Bancos de dados precisam do 'plan'
     databaseName: lead2buy_db
     user: lead2buy_user
