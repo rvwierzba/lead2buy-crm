@@ -1,0 +1,37 @@
+body, html {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+:root {
+  --primary-color: #4A47A3;
+  --text-color: #212529;
+  --text-color-muted: #6c757d;
+  --bg-color: #E9ECEF; /* <-- CINZA UM POUCO MAIS ESCURO E SÓLIDO */
+  --ui-bg: #ffffff;    /* Painéis continuam brancos */
+  --ui-border: #dee2e6;
+  --navbar-footer-bg: #ffffff;
+  --navbar-footer-border: #dee2e6;
+}
+/* =============================================== */
+/* ============== TEMA DARK ====================== */
+/* =============================================== */
+
+/* Quando o body tiver a classe .dark-mode, estas variáveis serão usadas */
+.dark-mode {
+  --primary-color: #706DE5; /* Azul mais brilhante para melhor contraste no escuro */
+
+  --text-color: #E4E6EB;         /* Texto quase branco */
+  --text-color-muted: #B0B3B8;    /* Texto secundário (cinza claro) */
+
+  --bg-color: #121212;             /* Fundo realmente escuro (não 100% preto) */
+  --ui-bg: #1E1E1E;               /* Fundo para caixas, modais, tabelas */
+  --ui-border: #3A3B3C;          /* Cor da borda */
+
+  --navbar-footer-bg: #1E1E1E;
+  --navbar-footer-border: #3A3B3C;
+}
+

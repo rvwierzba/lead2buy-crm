@@ -1,0 +1,61 @@
+services:
+  # Serviço da API .NET
+  api:
+    build:
+      context: ./Lead2Buy.API
+      dockerfile: Dockerfile
+    container_name: lead2buy_api
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=lead2buy_db;Username=postgres;Password=@RVWSecretLeadsData
+      - OcrApiKey=K87679144388957
+      - MailjetApiKey=49fc3e132d31ec61110c79651eb9a22b
+      - MailjetApiSecret=541c19897679fd21aef0ae3ae9625e03
+    depends_on:
+      - db
+      - ollama
+    restart: unless-stopped
+    networks:
+      - lead2buy-net
+
+  # Serviço do Banco de Dados PostgreSQL
+  db:
+    image: postgres:latest
+    container_name: lead2buy_postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=@RVWSecretLeadsData
+      - POSTGRES_DB=lead2buy_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - lead2buy-net
+
+  # Serviço do Ollama com o modelo
+  ollama:
+    build:
+      context: ./ollama
+      dockerfile: Dockerfile
+    container_name: lead2buy_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    # A SEÇÃO 'DEPLOY' FOI REMOVIDA DAQUI
+    networks:
+      - lead2buy-net
+
+volumes:
+  postgres_data:
+  ollama_data:
+
+networks:
+  lead2buy-net:
+    driver: bridge

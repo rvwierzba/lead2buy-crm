@@ -1,0 +1,57 @@
+services:
+  # 1. Serviço do Banco de Dados PostgreSQL
+  - type: psql
+    name: lead2buy-postgres
+    plan: free
+    databaseName: lead2buy_db
+    user: lead2buy_user
+
+  # 2. Serviço da API .NET (Nosso Back-end)
+  - type: web
+    name: lead2buy-api
+    plan: free
+    env: docker
+    dockerfilePath: ./Lead2Buy.API/Dockerfile
+    # A Render vai dar uma URL interna para a API, como lead2buy-api:10000
+    # A URL pública será algo como lead2buy-api.onrender.com
+    envVars:
+      - key: ASPNETCORE_URLS
+        value: http://+:10000
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: lead2buy-postgres
+          property: connectionString
+      - key: OcrApiKey
+        sync: false # Inserir manualmente no painel da Render
+      - key: MailjetApiKey
+        sync: false # Inserir manualmente no painel da Render
+      - key: MailjetApiSecret
+        sync: false # Inserir manualmente no painel da Render
+      # Ajuste de CORS para aceitar a URL do nosso próprio front-end
+      - key: CORS_ORIGIN
+        fromService:
+          type: static_site
+          name: lead2buy-frontend
+          property: url
+
+  # 3. Serviço do Ollama com IA
+  - type: worker
+    name: lead2buy-ollama
+    plan: free
+    env: docker
+    dockerfilePath: ./ollama/Dockerfile
+
+  # 4. Serviço do Frontend Vue.js (Novo!)
+  - type: static_site
+    name: lead2buy-frontend
+    plan: free
+    env: node
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./lead2buy-frontend/dist
+    # Passa a URL da nossa API para o processo de build do front-end
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: lead2buy-api
+          property: url
