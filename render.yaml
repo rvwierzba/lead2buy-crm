@@ -19,10 +19,8 @@ services:
       - key: MailjetApiSecret
         sync: false # Inserir manualmente no painel da Render
       - key: CORS_ORIGIN
-        fromService:
-          type: web # O tipo do frontend agora é 'web'
-          name: lead2buy-frontend
-          property: url
+        # CORREÇÃO AQUI: Construímos a URL a partir do host do frontend
+        value: https://${lead2buy-frontend.host}
 
   # 2. Serviço do Ollama com IA
   - type: worker
@@ -31,19 +29,17 @@ services:
     env: docker
     dockerfilePath: ./ollama/Dockerfile
 
-  # 3. Serviço do Frontend Vue.js (COM A SINTAXE CORRETA)
-  - type: web # <-- A CORREÇÃO ESTÁ AQUI
+  # 3. Serviço do Frontend Vue.js
+  - type: web
     name: lead2buy-frontend
     plan: free
-    runtime: static # <-- E AQUI
+    runtime: static
     buildCommand: npm --prefix ./lead2buy-frontend install && npm --prefix ./lead2buy-frontend run build
     staticPublishPath: ./lead2buy-frontend/dist
     envVars:
       - key: VITE_API_BASE_URL
-        fromService:
-          type: web
-          name: lead2buy-api
-          property: url
+        # CORREÇÃO AQUI: Construímos a URL a partir do host da api
+        value: https://${lead2buy-api.host}
 
 # --- SEÇÃO CORRETA PARA BANCOS DE DADOS ---
 databases:
