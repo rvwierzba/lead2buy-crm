@@ -2,7 +2,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copia o arquivo .csproj da sua pasta local para uma pasta correspondente no container
+# Copia o arquivo .csproj da pasta da API para uma pasta correspondente no container
 COPY ["Lead2Buy.API/Lead2Buy.API.csproj", "Lead2Buy.API/"]
 
 # Restaura as dependências do projeto que acabamos de copiar
