@@ -10,7 +10,7 @@ services:
         value: http://+:10000
       - key: ConnectionStrings__DefaultConnection
         fromDatabase:
-          name: lead2buy-postgres # O nome que damos ao nosso banco abaixo
+          name: lead2buy-postgres
           property: connectionString
       - key: OcrApiKey
         sync: false # Inserir manualmente no painel da Render
@@ -20,7 +20,7 @@ services:
         sync: false # Inserir manualmente no painel da Render
       - key: CORS_ORIGIN
         fromService:
-          type: static_site
+          type: web # O tipo do frontend agora é 'web'
           name: lead2buy-frontend
           property: url
 
@@ -31,12 +31,12 @@ services:
     env: docker
     dockerfilePath: ./ollama/Dockerfile
 
-  # 3. Serviço do Frontend Vue.js
-  - type: static_site
+  # 3. Serviço do Frontend Vue.js (COM A SINTAXE CORRETA)
+  - type: web # <-- A CORREÇÃO ESTÁ AQUI
     name: lead2buy-frontend
     plan: free
-    env: node
-    buildCommand: npm install && npm run build
+    runtime: static # <-- E AQUI
+    buildCommand: npm --prefix ./lead2buy-frontend install && npm --prefix ./lead2buy-frontend run build
     staticPublishPath: ./lead2buy-frontend/dist
     envVars:
       - key: VITE_API_BASE_URL
