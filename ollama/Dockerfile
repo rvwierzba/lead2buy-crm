@@ -7,4 +7,4 @@ COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 # Define nosso script como o comando que será executado quando o container iniciar
-CMD ["/entrypoint.sh"]
+CMD ["./entrypoint.sh"]
