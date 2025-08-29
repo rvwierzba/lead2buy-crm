@@ -1,5 +1,5 @@
 services:
-  # 1. Serviço da API .NET (Nosso Back-end)
+  # 1. Serviço da API .NET
   - type: web
     name: lead2buy-api
     plan: free
@@ -13,23 +13,18 @@ services:
           name: lead2buy-postgres
           property: connectionString
       - key: OcrApiKey
-        sync: false # Inserir manualmente no painel da Render
+        sync: false
       - key: MailjetApiKey
-        sync: false # Inserir manualmente no painel da Render
+        sync: false
       - key: MailjetApiSecret
-        sync: false # Inserir manualmente no painel da Render
+        sync: false
       - key: CORS_ORIGIN
         value: https://${lead2buy-frontend.host}
+    # A dependência do ollama foi removida daqui
+    depends_on:
+      - lead2buy-postgres
 
-  # 2. Serviço do Ollama com IA
-  - type: web
-    name: lead2buy-ollama
-    plan: free
-    env: docker
-    dockerfilePath: ./ollama/Dockerfile
-    # A SEÇÃO healthCheck FOI REMOVIDA DAQUI
-
-  # 3. Serviço do Frontend Vue.js
+  # 2. Serviço do Frontend Vue.js
   - type: web
     name: lead2buy-frontend
     runtime: static
@@ -39,9 +34,15 @@ services:
       - key: VITE_API_BASE_URL
         value: https://${lead2buy-api.host}
 
-# --- SEÇÃO CORRETA PARA BANCOS DE DADOS ---
+  # --- O SERVIÇO DO OLLAMA ESTÁ DESATIVADO TEMPORARIAMENTE ---
+  # - type: web
+  #   name: lead2buy-ollama
+  #   plan: free
+  #   env: docker
+  #   dockerfilePath: ./ollama/Dockerfile
+
 databases:
-  # 4. Serviço do Banco de Dados PostgreSQL
+  # 3. Serviço do Banco de Dados PostgreSQL
   - name: lead2buy-postgres
     plan: free
     databaseName: lead2buy_db
