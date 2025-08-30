@@ -7,7 +7,7 @@ services:
     dockerfilePath: ./Lead2Buy.API/Dockerfile
     envVars:
       - key: ASPNETCORE_URLS
-        value: http://+:10000
+        value: http+:10000
       - key: ConnectionStrings__DefaultConnection
         fromDatabase:
           name: lead2buy-postgres
@@ -26,14 +26,7 @@ services:
       - key: CORS_ORIGIN
         value: https://${lead2buy-frontend.host}
 
-  # 2. Serviço do Ollama (desativado por enquanto)
-  # - type: web
-  #   name: lead2buy-ollama
-  #   plan: free
-  #   env: docker
-  #   dockerfilePath: ./ollama/Dockerfile
-
-  # 3. Serviço do Frontend Vue.js
+  # 2. Serviço do Frontend Vue.js
   - type: web
     name: lead2buy-frontend
     runtime: static
@@ -42,13 +35,14 @@ services:
     envVars:
       - key: VITE_API_BASE_URL
         value: https://${lead2buy-api.host}
-
-  # 4. Serviço de Redis (LUGAR CORRETO)
+        
+  # 3. Serviço de Redis
   - type: redis
     name: lead2buy-redis
     plan: free
+    ipAllowList: [] # Permite acesso interno dos seus outros serviços
 
 databases:
-  # 5. Serviço do Banco de Dados PostgreSQL
+  # 4. Serviço do Banco de Dados PostgreSQL
   - name: lead2buy-postgres
     plan: free
