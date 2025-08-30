@@ -11,7 +11,15 @@ RUN dotnet publish "Lead2Buy.API.csproj" -c Release -o /app/publish
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
-# Adiciona a ferramenta 'dotnet-ef' à imagem final para rodar as migrações
+
+# Adiciona a ferramenta 'dotnet-ef' à imagem final
 RUN dotnet tool install --global dotnet-ef --version 8.0.0
 ENV PATH="$PATH:/root/.dotnet/tools"
-ENTRYPOINT ["dotnet", "Lead2Buy.API.dll"]
+
+# Copia o nosso novo script de inicialização
+COPY ["Lead2Buy.API/entrypoint.sh", "."]
+# Dá permissão de execução para o script
+RUN chmod +x ./entrypoint.sh
+
+# Define o NOSSO SCRIPT como o ponto de entrada do container
+ENTRYPOINT ["./entrypoint.sh"]

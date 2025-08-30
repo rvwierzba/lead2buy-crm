@@ -5,8 +5,7 @@ services:
     plan: free
     env: docker
     dockerfilePath: ./Lead2Buy.API/Dockerfile
-    # Comando de inicialização para rodar migrações antes de iniciar
-    startCommand: dotnet ef database update && dotnet Lead2Buy.API.dll
+    # O 'startCommand' foi removido daqui e a lógica está agora no Dockerfile
     envVars:
       - key: ASPNETCORE_URLS
         value: http://+:10000
@@ -45,7 +44,7 @@ services:
       - key: VITE_API_BASE_URL
         value: https://${lead2buy-api.host}
 
-  # 4. Serviço de Redis (NO LUGAR CORRETO)
+  # 4. Serviço de Redis
   - type: redis
     name: lead2buy-redis
     plan: free
@@ -54,4 +53,4 @@ services:
 databases:
   # 5. Serviço do Banco de Dados PostgreSQL
   - name: lead2buy-postgres
-    plan: free 
+    plan: free
