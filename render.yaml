@@ -54,4 +54,4 @@ services:
 databases:
   # 5. Serviço do Banco de Dados PostgreSQL
   - name: lead2buy-postgres
-    plan: free
+    plan: free 
