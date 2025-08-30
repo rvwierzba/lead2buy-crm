@@ -1,11 +1,11 @@
 services:
-  # 1. API .NET
+  # 1. Serviço da API .NET
   - type: web
     name: lead2buy-api
     plan: free
     env: docker
     dockerfilePath: ./Lead2Buy.API/Dockerfile
-    # COMANDO DE INICIALIZAÇÃO CORRIGIDO
+    # Comando de inicialização para rodar migrações antes de iniciar
     startCommand: dotnet ef database update && dotnet Lead2Buy.API.dll
     envVars:
       - key: ASPNETCORE_URLS
@@ -28,14 +28,14 @@ services:
       - key: CORS_ORIGIN
         value: https://${lead2buy-frontend.host}
 
-  # 2. Ollama IA
+  # 2. Serviço do Ollama com IA
   - type: web
     name: lead2buy-ollama
     plan: free
     env: docker
     dockerfilePath: ./ollama/Dockerfile
 
-  # 3. Frontend Vue.js
+  # 3. Serviço do Frontend Vue.js
   - type: web
     name: lead2buy-frontend
     runtime: static
@@ -45,12 +45,13 @@ services:
       - key: VITE_API_BASE_URL
         value: https://${lead2buy-api.host}
 
-databases:
-  # 4. Banco de Dados PostgreSQL
-  - name: lead2buy-postgres
-    plan: free
-
-  # 5. Serviço de Redis
+  # 4. Serviço de Redis (NO LUGAR CORRETO)
   - type: redis
     name: lead2buy-redis
+    plan: free
+    ipAllowList: [] # Permite acesso interno dos seus outros serviços
+
+databases:
+  # 5. Serviço do Banco de Dados PostgreSQL
+  - name: lead2buy-postgres
     plan: free
