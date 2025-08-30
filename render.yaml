@@ -5,7 +5,7 @@ services:
     plan: free
     env: docker
     dockerfilePath: ./Lead2Buy.API/Dockerfile
-    # O 'startCommand' foi removido daqui e a lógica está agora no Dockerfile
+   
     envVars:
       - key: ASPNETCORE_URLS
         value: http://+:10000
