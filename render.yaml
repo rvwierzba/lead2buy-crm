@@ -34,10 +34,12 @@ services:
     dockerfilePath: ./ollama/Dockerfile
 
   # 3. Serviço do Frontend Vue.js (Static Site)
-  - type: static_site
+  - type: web
     name: lead2buy-frontend
+    plan: free
+    runtime: static
     buildCommand: npm --prefix ./lead2buy-frontend install && npm --prefix ./lead2buy-frontend run build
-    publishPath: ./lead2buy-frontend/dist
+    staticPublishPath: ./lead2buy-frontend/dist
     envVars:
       - key: VITE_API_BASE_URL
         value: https://lead2buy-api.onrender.com
