@@ -32,6 +32,17 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
+// Registra o Redis (COMO JÁ ESTAVA NO SEU CÓDIGO CORRETO)
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp => 
+{
+    var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnectionString");
+    if (string.IsNullOrEmpty(redisConnectionString))
+    {
+        throw new InvalidOperationException("A string de conexão do Redis não foi encontrada.");
+    }
+    return ConnectionMultiplexer.Connect(redisConnectionString);
+});
+
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddHostedService<OcrProcessingService>();
 
@@ -69,12 +80,6 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-
-// Registra o Redis
-builder.Services.AddSingleton<IConnectionMultiplexer>(sp => 
-    ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("RedisConnectionString")));
-
-
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -107,7 +112,8 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");
 
-// --- INÍCIO DA NOVA LÓGICA DE MIGRAÇÃO AUTOMÁTICA ---
+// --- LÓGICA DE MIGRAÇÃO AUTOMÁTICA NA INICIALIZAÇÃO (A PEÇA QUE FALTAVA) ---
+// Este bloco resolve o erro da API iniciar antes do banco de dados.
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -115,17 +121,16 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<AppDbContext>();
         // Aplica quaisquer migrações pendentes. Se o banco não existir, ele o cria.
+        // Isso força a API a esperar o banco ficar pronto.
         context.Database.Migrate();
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogError(ex, "Ocorreu um erro durante a migração do banco de dados.");
-        // Opcional: decidir se a aplicação deve parar se a migração falhar.
-        // Para produção, é mais seguro parar.
         throw;
     }
 }
-// --- FIM DA NOVA LÓGICA ---
+// --- FIM DA LÓGICA ---
 
 app.Run();
