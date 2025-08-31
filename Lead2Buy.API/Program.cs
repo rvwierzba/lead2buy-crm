@@ -25,10 +25,7 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
     var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnectionString");
     if (string.IsNullOrEmpty(redisConnectionString))
     {
-        // Isso evita que a aplicação quebre se a variável de ambiente ainda não estiver pronta
-        // O serviço de background vai esperar.
         Console.WriteLine("String de conexão do Redis não encontrada, aguardando o serviço iniciar...");
-        // Retorna um objeto nulo temporariamente, a lógica de migração vai segurar a inicialização
         return null;
     }
     return ConnectionMultiplexer.Connect(redisConnectionString);
@@ -55,24 +52,38 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");
 
-// --- LÓGICA DE MIGRAÇÃO AUTOMÁTICA NA INICIALIZAÇÃO ---
-// Este bloco resolve o erro da API iniciar antes do banco de dados.
-using (var scope = app.Services.CreateScope())
+// --- LÓGICA DE MIGRAÇÃO ROBUSTA COM RETENTATIVAS ---
+// Este bloco resolve o erro da API iniciar antes do banco de dados estar pronto.
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+var maxRetries = 5;
+var retryDelay = TimeSpan.FromSeconds(10);
+
+for (int i = 0; i < maxRetries; i++)
 {
-    var services = scope.ServiceProvider;
     try
     {
-        using var scope4db = app.Services.CreateScope();
-        var db = scope4db.ServiceProvider.GetRequiredService<AppDbContext>();
-        db.Database.Migrate(); 
-        Console.WriteLine("Aguardando o banco de dados ficar pronto e executando migrações...");
-        Console.WriteLine("Migrações do banco de dados aplicadas com sucesso.");
+        using (var scope = app.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            logger.LogInformation("Tentando aplicar migrações do banco de dados (Tentativa {Attempt}/{MaxAttempts})...", i + 1, maxRetries);
+            dbContext.Database.Migrate();
+            logger.LogInformation("Migrações do banco de dados aplicadas com sucesso.");
+        }
+        break; // Sai do loop se a migração for bem-sucedida
     }
     catch (Exception ex)
     {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Ocorreu um erro fatal durante a migração do banco de dados.");
-        throw; // Falha o deploy se a migração não funcionar
+        logger.LogError(ex, "Ocorreu um erro durante a migração do banco de dados na tentativa {Attempt}.", i + 1);
+        if (i < maxRetries - 1)
+        {
+            logger.LogInformation("Aguardando {Delay} segundos antes da próxima tentativa.", retryDelay.Seconds);
+            await Task.Delay(retryDelay); // Espera assíncrona
+        }
+        else
+        {
+            logger.LogCritical(ex, "Não foi possível conectar ao banco de dados após {MaxAttempts} tentativas. A aplicação será encerrada.", maxRetries);
+            throw; // Lança a exceção para falhar o início da aplicação
+        }
     }
 }
 // --- FIM DA LÓGICA ---
