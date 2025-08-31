@@ -1,10 +1,9 @@
 FROM ollama/ollama
 
-# Copia nosso script de inicialização para dentro da imagem
-COPY entrypoint.sh /entrypoint.sh
+# Executa todos os comandos de inicialização diretamente aqui.
+# O ENTRYPOINT força o uso do shell, resolvendo o erro de "comando desconhecido".
+ENTRYPOINT ["/bin/sh", "-c"]
 
-# Dá permissão de execução para o script
-RUN chmod +x /entrypoint.sh
-
-# Define NOSSO SCRIPT como o ponto de entrada do container
-ENTRYPOINT ["/entrypoint.sh"]
+# O comando agora roda o servidor em segundo plano, baixa o modelo,
+# e depois usa 'wait' para manter o container vivo.
+CMD ["ollama serve & sleep 5 && ollama pull phi4-mini:q4_0 && wait"]

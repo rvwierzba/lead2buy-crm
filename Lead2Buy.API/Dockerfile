@@ -16,8 +16,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 
 # Copia a ferramenta dotnet-ef JÁ INSTALADA do estágio de build para a imagem final
 COPY --from=build /root/.dotnet/tools /root/.dotnet/tools
-# Adiciona o diretório de ferramentas ao PATH do sistema para que os comandos sejam encontrados
-ENV PATH="$PATH:/root/.dotnet/tools"
 
 WORKDIR /app
 COPY --from=build /app/publish .
