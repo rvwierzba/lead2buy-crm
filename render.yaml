@@ -24,7 +24,10 @@ services:
       - key: MailjetApiSecret
         sync: false
       - key: CORS_ORIGIN
-        value: https://${lead2buy-frontend.host}
+        fromService:
+          type: web
+          name: lead2buy-frontend
+          property: url
 
   # 2. Serviço do Ollama com IA
   - type: web
@@ -41,13 +44,16 @@ services:
     publishPath: ./lead2buy-frontend/dist
     envVars:
       - key: VITE_API_BASE_URL
-        value: https://${lead2buy-api.host}
+        fromService:
+          type: web
+          name: lead2buy-api
+          property: url
 
-  # 4. Serviço de Redis (COM A CORREÇÃO)
+  # 4. Serviço de Redis
   - type: redis
     name: lead2buy-redis
     plan: free
-    ipAllowList: [] # <-- A CORREÇÃO ESTÁ AQUI. Permite acesso interno.
+    ipAllowList: [] # Permite acesso interno de outros serviços da sua conta Render
 
 databases:
   # 5. Serviço do Banco de Dados PostgreSQL
