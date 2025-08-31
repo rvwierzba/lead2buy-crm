@@ -1,24 +1,22 @@
-# Estágio 1: Build
+# Estágio 1: Build (com o SDK completo)
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copia o arquivo .csproj da pasta da API para uma pasta correspondente no container
+# Instala a ferramenta dotnet-ef AQUI, no ambiente de build
+RUN dotnet tool install --global dotnet-ef --version 8.0.0
+
 COPY ["Lead2Buy.API/Lead2Buy.API.csproj", "Lead2Buy.API/"]
-
-# Restaura as dependências do projeto que acabamos de copiar
 RUN dotnet restore "Lead2Buy.API/Lead2Buy.API.csproj"
-
-# Copia todo o resto do código fonte
 COPY . .
 WORKDIR "/src/Lead2Buy.API"
 RUN dotnet publish "Lead2Buy.API.csproj" -c Release -o /app/publish
 
-# Estágio 2: Final
+# Estágio 2: Final (imagem leve de runtime)
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 
-# Adiciona a ferramenta 'dotnet-ef' à imagem final
-# A forma correta é instalar no build e copiar, mas vamos simplificar para garantir o deploy
-RUN dotnet tool install --global dotnet-ef --version 8.0.0
+# Copia a ferramenta dotnet-ef JÁ INSTALADA do estágio de build para a imagem final
+COPY --from=build /root/.dotnet/tools /root/.dotnet/tools
+# Adiciona o diretório de ferramentas ao PATH do sistema para que os comandos sejam encontrados
 ENV PATH="$PATH:/root/.dotnet/tools"
 
 WORKDIR /app
@@ -28,4 +26,5 @@ COPY --from=build /app/publish .
 COPY ["Lead2Buy.API/entrypoint.sh", "."]
 RUN chmod +x ./entrypoint.sh
 
+# Define o NOSSO SCRIPT como o ponto de entrada do container
 ENTRYPOINT ["./entrypoint.sh"]
