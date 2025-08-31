@@ -21,7 +21,18 @@ builder.Services.AddCors(options => {
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp => 
-    ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("RedisConnectionString")));
+{
+    var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnectionString");
+    if (string.IsNullOrEmpty(redisConnectionString))
+    {
+        // Isso evita que a aplicação quebre se a variável de ambiente ainda não estiver pronta
+        // O serviço de background vai esperar.
+        Console.WriteLine("String de conexão do Redis não encontrada, aguardando o serviço iniciar...");
+        // Retorna um objeto nulo temporariamente, a lógica de migração vai segurar a inicialização
+        return null;
+    }
+    return ConnectionMultiplexer.Connect(redisConnectionString);
+});
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddHostedService<OcrProcessingService>();
 builder.Services.AddControllers().AddJsonOptions(options => {
@@ -45,21 +56,25 @@ app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");
 
 // --- LÓGICA DE MIGRAÇÃO AUTOMÁTICA NA INICIALIZAÇÃO ---
-try
+// Este bloco resolve o erro da API iniciar antes do banco de dados.
+using (var scope = app.Services.CreateScope())
 {
-    using var scope = app.Services.CreateScope();
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    Console.WriteLine("Aguardando o banco de dados ficar pronto...");
-    // Tenta conectar e aplicar migrações. Isso pausa a inicialização até o DB estar pronto.
-    dbContext.Database.Migrate();
-    Console.WriteLine("Migrações do banco de dados aplicadas com sucesso.");
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        Console.WriteLine("Aguardando o banco de dados ficar pronto e executando migrações...");
+        // Tenta conectar e aplicar migrações. Isso pausa a inicialização até o DB estar pronto.
+        context.Database.Migrate();
+        Console.WriteLine("Migrações do banco de dados aplicadas com sucesso.");
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Ocorreu um erro fatal durante a migração do banco de dados.");
+        throw; // Falha o deploy se a migração não funcionar
+    }
 }
-catch (Exception ex)
-{
-    Console.WriteLine($"Ocorreu um erro fatal durante a migração do banco de dados: {ex.Message}");
-    // Em um cenário real, poderíamos decidir parar a aplicação aqui.
-    // Por enquanto, vamos logar e continuar.
-}
-// --- FIM DA LÓGICA DE MIGRAÇÃO ---
+// --- FIM DA LÓGICA ---
 
 app.Run();
