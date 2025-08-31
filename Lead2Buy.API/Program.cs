@@ -65,8 +65,7 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<AppDbContext>();
         Console.WriteLine("Aguardando o banco de dados ficar pronto e executando migrações...");
         // Tenta conectar e aplicar migrações. Isso pausa a inicialização até o DB estar pronto.
-        context.Database.Migrate();
-        Console.WriteLine("Migrações do banco de dados aplicadas com sucesso.");
+         Console.WriteLine("Migrações do banco de dados aplicadas com sucesso.");
     }
     catch (Exception ex)
     {

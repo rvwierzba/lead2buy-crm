@@ -1,12 +1,12 @@
 #!/bin/bash
+
+# Saia imediatamente se um comando falhar
 set -e
 
-echo "Aguardando o banco de dados ficar pronto... (espera de 20s)"
-sleep 20
+# Aguarde o banco de dados ficar pronto e execute as migrações
+echo "Aguardando o banco de dados ficar pronto e executando migrações..."
+dotnet ef database update
 
-echo "Executando migrações do banco de dados..."
-# A CORREÇÃO FINAL: Usa o caminho completo para a ferramenta 'ef'
-/root/.dotnet/tools/dotnet-ef database update
-
-echo "Migrações concluídas. Iniciando a aplicação..."
-exec dotnet Lead2Buy.API.dll
+# Inicie a aplicação principal
+echo "Iniciando a aplicação..."
+dotnet Lead2Buy.API.dll
