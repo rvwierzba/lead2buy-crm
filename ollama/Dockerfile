@@ -1,7 +1,11 @@
 FROM ollama/ollama
 
-# O RUN baixa o modelo durante a construção da imagem, o que é mais confiável.
-RUN ollama pull phi4-mini:q4_0
+# Instala o 'curl' para verificar a saúde do servidor
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-# O ENTRYPOINT da imagem base já é "ollama", então passamos "serve" como comando padrão.
-CMD [ "serve" ]
+# Copia e torna o script de inicialização executável
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Define o script como o ponto de entrada do contêiner
+ENTRYPOINT ["/entrypoint.sh"]

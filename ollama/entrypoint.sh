@@ -1,15 +1,25 @@
 #!/bin/sh
+set -e
 
-# Inicia o servidor principal do Ollama em segundo plano
+# Inicia o servidor Ollama em background
 ollama serve &
 
-# Espera 5 segundos para o servidor ficar pronto
-sleep 5
+# Captura o PID do processo em background
+pid=$!
 
-# Agora que o servidor está no ar, baixa o modelo
-echo "Baixando o modelo phi4-mini:q4_0..."
+echo "Aguardando o servidor Ollama iniciar..."
+
+# Espera até que o servidor esteja respondendo
+while ! curl -s -f http://127.0.0.1:11434/ > /dev/null; do
+    sleep 1
+done
+
+echo "Servidor Ollama iniciado. Baixando o modelo..."
+
+# Baixa o modelo
 ollama pull phi4-mini:q4_0
-echo "Modelo baixado com sucesso!"
 
-# 'wait' impede que o container termine após o download
-wait
+echo "Modelo baixado com sucesso."
+
+# Traz o processo do servidor para o primeiro plano para manter o contêiner ativo
+wait $pid
