@@ -2,7 +2,7 @@ services:
   # 1. Serviço da API .NET (Web Service)
   - type: web
     name: lead2buy-api
-    plan: free
+    plan: starter
     env: docker
     dockerfilePath: ./Lead2Buy.API/Dockerfile
     envVars:
@@ -29,7 +29,7 @@ services:
   # 2. Serviço do Ollama com IA (Web Service)
   - type: web
     name: lead2buy-ollama
-    plan: free
+    plan: starter
     env: docker
     dockerfilePath: ./ollama/Dockerfile
 
@@ -44,7 +44,7 @@ services:
       - key: VITE_API_BASE_URL
         value: https://lead2buy-api.onrender.com
 
-  # 4. Serviço de Redis (Private Service)
+  # 4. Serviço de Redis
   - type: redis
     name: lead2buy-redis
     plan: free
