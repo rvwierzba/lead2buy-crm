@@ -23,11 +23,9 @@ services:
         sync: false
       - key: MailjetApiSecret
         sync: false
+      # CORREÇÃO: Quebra a dependência circular definindo a URL explicitamente.
       - key: CORS_ORIGIN
-        fromService:
-          type: web
-          name: lead2buy-frontend
-          property: url
+        value: https://lead2buy-frontend.onrender.com
 
   # 2. Serviço do Ollama com IA
   - type: web
