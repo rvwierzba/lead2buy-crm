@@ -1,9 +1,7 @@
 FROM ollama/ollama
 
-# Executa todos os comandos de inicialização diretamente aqui.
-# O ENTRYPOINT força o uso do shell, resolvendo o erro de "comando desconhecido".
-ENTRYPOINT ["/bin/sh", "-c"]
+# O RUN baixa o modelo durante a construção da imagem, o que é mais confiável.
+RUN ollama pull phi4-mini:q4_0
 
-# O comando agora roda o servidor em segundo plano, baixa o modelo,
-# e depois usa 'wait' para manter o container vivo.
-CMD ["ollama serve & sleep 5 && ollama pull phi4-mini:q4_0 && wait"]
+# O ENTRYPOINT da imagem base já é "ollama", então passamos "serve" como comando padrão.
+CMD [ "serve" ]

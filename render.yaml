@@ -1,6 +1,5 @@
 services:
   # 1. Serviço da API .NET
-  # Usa o entrypoint.sh dentro do Dockerfile para rodar as migrações
   - type: web
     name: lead2buy-api
     plan: free
@@ -27,8 +26,7 @@ services:
       - key: CORS_ORIGIN
         value: https://${lead2buy-frontend.host}
 
-  # 2. Serviço do Ollama com IA
-  # Usa o Dockerfile autossuficiente que não depende de scripts externos
+  # 2. Serviço do Ollama com IA (como serviço web para o plano gratuito)
   - type: web
     name: lead2buy-ollama
     plan: free
@@ -45,13 +43,13 @@ services:
       - key: VITE_API_BASE_URL
         value: https://${lead2buy-api.host}
 
-  # 4. Serviço de Redis
+  # 4. Serviço de Redis (NO LUGAR CORRETO)
   - type: redis
     name: lead2buy-redis
     plan: free
     ipAllowList: [] # Permite acesso interno dos seus outros serviços
 
 databases:
-  # 5. Serviço do Banco de Dados PostgreSQL
+  # 5. Serviço do Banco de Dados PostgreSQL (NO LUGAR CORRETO)
   - name: lead2buy-postgres
     plan: free
