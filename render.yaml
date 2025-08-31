@@ -5,25 +5,20 @@ services:
     plan: free
     env: docker
     dockerfilePath: ./Lead2Buy.API/Dockerfile
-    # A porta interna que sua API escuta
     envVars:
       - key: ASPNETCORE_URLS
         value: http://+:10000
-      # Conexão com o banco de dados
       - key: ConnectionStrings__DefaultConnection
         fromDatabase:
           name: lead2buy-postgres
           property: connectionString
-      # Conexão com o Redis
       - key: RedisConnectionString
         fromService:
           type: redis
           name: lead2buy-redis
           property: connectionString
-      # URL do frontend para CORS (definida explicitamente)
       - key: CORS_ORIGIN
         value: https://lead2buy-frontend.onrender.com
-      # Chaves secretas a serem adicionadas no dashboard
       - key: OcrApiKey
         sync: false
       - key: MailjetApiKey
@@ -39,13 +34,11 @@ services:
     dockerfilePath: ./ollama/Dockerfile
 
   # 3. Serviço do Frontend Vue.js (Static Site)
-  - type: web
+  - type: static_site
     name: lead2buy-frontend
-    runtime: static
     buildCommand: npm --prefix ./lead2buy-frontend install && npm --prefix ./lead2buy-frontend run build
     publishPath: ./lead2buy-frontend/dist
     envVars:
-      # URL da API para o frontend (definida explicitamente)
       - key: VITE_API_BASE_URL
         value: https://lead2buy-api.onrender.com
 
@@ -53,7 +46,7 @@ services:
   - type: redis
     name: lead2buy-redis
     plan: free
-    ipAllowList: [] # Permite acesso interno
+    ipAllowList: []
 
 databases:
   # 5. Serviço do Banco de Dados PostgreSQL
