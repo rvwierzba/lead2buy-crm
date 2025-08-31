@@ -23,7 +23,7 @@ services:
         sync: false
       - key: MailjetApiSecret
         sync: false
-      # CORREÇÃO: Quebra a dependência circular definindo a URL explicitamente.
+      # URL do frontend definida explicitamente
       - key: CORS_ORIGIN
         value: https://lead2buy-frontend.onrender.com
 
@@ -41,17 +41,15 @@ services:
     buildCommand: npm --prefix ./lead2buy-frontend install && npm --prefix ./lead2buy-frontend run build
     publishPath: ./lead2buy-frontend/dist
     envVars:
+      # CORREÇÃO FINAL: URL da API definida explicitamente
       - key: VITE_API_BASE_URL
-        fromService:
-          type: web
-          name: lead2buy-api
-          property: url
+        value: https://lead2buy-api.onrender.com
 
   # 4. Serviço de Redis
   - type: redis
     name: lead2buy-redis
     plan: free
-    ipAllowList: [] # Permite acesso interno de outros serviços da sua conta Render
+    ipAllowList: []
 
 databases:
   # 5. Serviço do Banco de Dados PostgreSQL
