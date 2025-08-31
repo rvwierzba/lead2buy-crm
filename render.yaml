@@ -1,8 +1,9 @@
+# Definindo os serviços baseados na documentação oficial do Render
 services:
   # 1. Serviço da API .NET (Web Service)
   - type: web
     name: lead2buy-api
-    plan: starter
+    plan: free
     env: docker
     dockerfilePath: ./Lead2Buy.API/Dockerfile
     envVars:
@@ -19,6 +20,7 @@ services:
           property: connectionString
       - key: CORS_ORIGIN
         value: https://lead2buy-frontend.onrender.com
+      # As chaves secretas (OcrApiKey, etc.) devem ser adicionadas manualmente no dashboard do serviço após a criação.
       - key: OcrApiKey
         sync: false
       - key: MailjetApiKey
@@ -26,20 +28,20 @@ services:
       - key: MailjetApiSecret
         sync: false
 
-  # 2. Serviço do Ollama com IA (Web Service)
+  # 2. Serviço do Ollama (Web Service)
   - type: web
     name: lead2buy-ollama
-    plan: starter
+    plan: free
     env: docker
     dockerfilePath: ./ollama/Dockerfile
 
-  # 3. Serviço do Frontend Vue.js (Static Site)
+  # 3. Serviço do Frontend (Static Site)
+  # Nota: O Render trata "runtime: static" como um tipo de 'web', mas com otimizações.
   - type: web
     name: lead2buy-frontend
-    plan: free
     runtime: static
     buildCommand: npm --prefix ./lead2buy-frontend install && npm --prefix ./lead2buy-frontend run build
-    staticPublishPath: ./lead2buy-frontend/dist
+    publishPath: ./lead2buy-frontend/dist
     envVars:
       - key: VITE_API_BASE_URL
         value: https://lead2buy-api.onrender.com
@@ -48,9 +50,9 @@ services:
   - type: redis
     name: lead2buy-redis
     plan: free
-    ipAllowList: []
+    ipAllowList: [] # Permite acesso interno
 
+# Definindo o banco de dados
 databases:
-  # 5. Serviço do Banco de Dados PostgreSQL
   - name: lead2buy-postgres
     plan: free
