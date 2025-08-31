@@ -1,2 +1,10 @@
 FROM ollama/ollama
-CMD ["/bin/sh", "-c", "ollama serve & sleep 5 && ollama pull phi4-mini:q4_0 && wait"]
+
+# Copia nosso script de inicialização para dentro da imagem
+COPY entrypoint.sh /entrypoint.sh
+
+# Dá permissão de execução para o script
+RUN chmod +x /entrypoint.sh
+
+# Define NOSSO SCRIPT como o ponto de entrada do container
+ENTRYPOINT ["/entrypoint.sh"]

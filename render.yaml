@@ -1,11 +1,11 @@
 services:
   # 1. Serviço da API .NET
+  # Usa o entrypoint.sh dentro do Dockerfile para rodar as migrações
   - type: web
     name: lead2buy-api
     plan: free
     env: docker
     dockerfilePath: ./Lead2Buy.API/Dockerfile
-   
     envVars:
       - key: ASPNETCORE_URLS
         value: http://+:10000
@@ -28,6 +28,7 @@ services:
         value: https://${lead2buy-frontend.host}
 
   # 2. Serviço do Ollama com IA
+  # Usa o Dockerfile autossuficiente que não depende de scripts externos
   - type: web
     name: lead2buy-ollama
     plan: free
