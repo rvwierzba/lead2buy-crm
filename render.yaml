@@ -1,24 +1,55 @@
 services:
+  # 1. API .NET
   - type: web
     name: lead2buy-api
     plan: free
     env: docker
     dockerfilePath: ./Lead2Buy.API/Dockerfile
     envVars:
-      # ... (suas variáveis de ambiente, que já estão corretas)
+      - key: ASPNETCORE_URLS
+        value: http://+:10000
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: lead2buy-postgres
+          property: connectionString
+      - key: RedisConnectionString
+        fromService:
+          type: redis
+          name: lead2buy-redis
+          property: connectionString
+      - key: OcrApiKey
+        sync: false
+      - key: MailjetApiKey
+        sync: false
+      - key: MailjetApiSecret
+        sync: false
+      - key: CORS_ORIGIN
+        value: https://${lead2buy-frontend.host}
+
+  # 2. Ollama IA
   - type: web
     name: lead2buy-ollama
     plan: free
     env: docker
     dockerfilePath: ./ollama/Dockerfile
+
+  # 3. Frontend Vue.js 
   - type: web
     name: lead2buy-frontend
     runtime: static
-    # ... (resto da configuração do frontend)
+    buildCommand: npm --prefix ./lead2buy-frontend install && npm --prefix ./lead2buy-frontend run build
+    publishPath: ./lead2buy-frontend/dist 
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://${lead2buy-api.host}
+
+  # 4. Serviço de Redis
   - type: redis
     name: lead2buy-redis
     plan: free
     ipAllowList: []
+
 databases:
+  # 5. Banco de Dados PostgreSQL
   - name: lead2buy-postgres
     plan: free
