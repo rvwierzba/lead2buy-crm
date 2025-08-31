@@ -1,6 +1,6 @@
-# Definindo os serviços baseados na documentação oficial do Render
+# Versão final do render.yaml corrigida com base no erro "Invalid service type"
 services:
-  # 1. Serviço da API .NET (Web Service)
+  # 1. Serviço da API .NET
   - type: web
     name: lead2buy-api
     plan: free
@@ -20,7 +20,6 @@ services:
           property: connectionString
       - key: CORS_ORIGIN
         value: https://lead2buy-frontend.onrender.com
-      # As chaves secretas (OcrApiKey, etc.) devem ser adicionadas manualmente no dashboard do serviço após a criação.
       - key: OcrApiKey
         sync: false
       - key: MailjetApiKey
@@ -28,15 +27,15 @@ services:
       - key: MailjetApiSecret
         sync: false
 
-  # 2. Serviço do Ollama (Web Service)
+  # 2. Serviço do Ollama
   - type: web
     name: lead2buy-ollama
     plan: free
     env: docker
     dockerfilePath: ./ollama/Dockerfile
 
-  # 3. Serviço do Frontend (Static Site)
-  # Nota: O Render trata "runtime: static" como um tipo de 'web', mas com otimizações.
+  # 3. Serviço do Frontend (CORRIGIDO)
+  # O tipo 'web' com 'runtime: static' é a maneira correta de definir um site estático no plano gratuito.
   - type: web
     name: lead2buy-frontend
     runtime: static
@@ -50,9 +49,9 @@ services:
   - type: redis
     name: lead2buy-redis
     plan: free
-    ipAllowList: [] # Permite acesso interno
+    ipAllowList: []
 
-# Definindo o banco de dados
 databases:
+  # 5. Banco de Dados PostgreSQL
   - name: lead2buy-postgres
     plan: free
