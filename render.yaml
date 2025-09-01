@@ -1,4 +1,4 @@
-# Versão final do render.yaml corrigida com base no erro "publishPath not found"
+# Versão final e completa do render.yaml
 services:
   # 1. Serviço da API .NET
   - type: web
@@ -35,12 +35,11 @@ services:
     dockerfilePath: ./ollama/Dockerfile
 
   # 3. Serviço do Frontend (CORRIGIDO)
-  # A combinação de 'type: web' e 'runtime: static' informa ao Render
-  # que este é um Site Estático, permitindo o uso de 'publishPath'.
   - type: web
     name: lead2buy-frontend
     runtime: static
     buildCommand: npm --prefix ./lead2buy-frontend install && npm --prefix ./lead2buy-frontend run build
+    publishPath: ./lead2buy-frontend/dist # Esta linha é obrigatória
     envVars:
       - key: VITE_API_BASE_URL
         value: https://lead2buy-api.onrender.com
