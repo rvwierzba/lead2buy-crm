@@ -1,4 +1,4 @@
-# Versão final do render.yaml corrigida com base no erro "Invalid service type"
+# Versão final do render.yaml corrigida com base no erro "publishPath not found"
 services:
   # 1. Serviço da API .NET
   - type: web
@@ -35,7 +35,8 @@ services:
     dockerfilePath: ./ollama/Dockerfile
 
   # 3. Serviço do Frontend (CORRIGIDO)
-  # O tipo 'web' com 'runtime: static' é a maneira correta de definir um site estático no plano gratuito.
+  # A combinação de 'type: web' e 'runtime: static' informa ao Render
+  # que este é um Site Estático, permitindo o uso de 'publishPath'.
   - type: web
     name: lead2buy-frontend
     runtime: static

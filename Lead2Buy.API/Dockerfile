@@ -1,27 +1,56 @@
-# Estágio 1: Build - Focado em restaurar dependências e compilar
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
+# Versão corrigida do render.yaml com base no erro "publishPath not found"
+services:
+  # 1. Serviço da API .NET
+  - type: web
+    name: lead2buy-api
+    plan: free
+    env: docker
+    dockerfilePath: ./Lead2Buy.API/Dockerfile
+    envVars:
+      - key: ASPNETCORE_URLS
+        value: http://+:10000
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: lead2buy-postgres
+          property: connectionString
+      - key: RedisConnectionString
+        fromService:
+          type: redis
+          name: lead2buy-redis
+          property: connectionString
+      - key: CORS_ORIGIN
+        value: https://lead2buy-frontend.onrender.com
+      - key: OcrApiKey
+        sync: false
+      - key: MailjetApiKey
+        sync: false
+      - key: MailjetApiSecret
+        sync: false
 
-# Copia o arquivo da solução (.sln) e os arquivos de projeto (.csproj)
-# Esta é a maneira correta de garantir que todas as dependências sejam reconhecidas
-COPY ["Lead2Buy.sln", "."]
-COPY ["Lead2Buy.API/Lead2Buy.API.csproj", "Lead2Buy.API/"]
-# Adicione aqui a cópia de QUALQUER OUTRO PROJETO .csproj que sua solução tenha
+  # 2. Serviço do Ollama
+  - type: web
+    name: lead2buy-ollama
+    plan: free
+    env: docker
+    dockerfilePath: ./ollama/Dockerfile
 
-# Executa o restore no nível da solução para baixar TODOS os pacotes (incluindo IronOcr)
-RUN dotnet restore "Lead2Buy.sln"
+  # 3. Serviço do Frontend (CORRIGIDO)
+  # O tipo 'static_site' é o correto para serviços com 'publishPath'
+  - type: static_site
+    name: lead2buy-frontend
+    buildCommand: npm --prefix ./lead2buy-frontend install && npm --prefix ./lead2buy-frontend run build
+    publishPath: ./lead2buy-frontend/dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://lead2buy-api.onrender.com
 
-# Agora copia todo o resto do código fonte
-COPY . .
+  # 4. Serviço de Redis
+  - type: redis
+    name: lead2buy-redis
+    plan: free
+    ipAllowList: []
 
-# Define o diretório de trabalho para o projeto da API
-WORKDIR "/src/Lead2Buy.API"
-
-# Publica a aplicação, otimizada para Release
-RUN dotnet publish "Lead2Buy.API.csproj" -c Release -o /app/publish --no-restore
-
-# Estágio 2: Final - Imagem leve, apenas com o necessário para rodar
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
-WORKDIR /app
-COPY --from=build /app/publish .
-ENTRYPOINT ["dotnet", "Lead2Buy.API.dll"]
+databases:
+  # 5. Banco de Dados PostgreSQL
+  - name: lead2buy-postgres
+    plan: free
