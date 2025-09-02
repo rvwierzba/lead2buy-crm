@@ -1,14 +1,16 @@
-# Configuração para rodar a API, Redis e Banco de Dados no Render
+# ATENÇÃO: Este arquivo usa um plano PAGO para o serviço Ollama,
+# pois o plano gratuito do Render só permite UM serviço web.
+
 services:
-  # 1. Serviço da API .NET (seu único serviço web gratuito)
+  # 1. Serviço da API .NET
   - type: web
     name: lead2buy-api
-    plan: free
+    plan: free # <--- Ocupando o único espaço de serviço web GRATUITO
     env: docker
     dockerfilePath: ./Lead2Buy.API/Dockerfile
     envVars:
       - key: ASPNETCORE_URLS
-        value: http+:10000
+        value: http://+:10000
       - key: ConnectionStrings__DefaultConnection
         fromDatabase:
           name: lead2buy-postgres
@@ -18,7 +20,7 @@ services:
           type: redis
           name: lead2buy-redis
           property: connectionString
-      - key: CORS_ORIGIN
+      - key: CORS_ORIGIN # Coloque a URL do seu frontend aqui
         value: https://rvwierzba.github.io
       - key: OcrApiKey
         sync: false
@@ -27,13 +29,20 @@ services:
       - key: MailjetApiSecret
         sync: false
 
-  # 2. Serviço de Redis
+  # 2. Serviço do Ollama com IA
+  - type: web
+    name: lead2buy-ollama
+    plan: starter # <--- Plano PAGO para permitir o segundo serviço web
+    env: docker
+    dockerfilePath: ./ollama/Dockerfile
+
+  # 3. Serviço de Redis
   - type: redis
     name: lead2buy-redis
     plan: free
     ipAllowList: []
 
 databases:
-  # 3. Banco de Dados PostgreSQL
+  # 4. Banco de Dados PostgreSQL
   - name: lead2buy-postgres
     plan: free
