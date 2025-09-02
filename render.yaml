@@ -1,11 +1,9 @@
-# ATENÇÃO: Este arquivo usa um plano PAGO para o serviço Ollama,
-# pois o plano gratuito do Render só permite UM serviço web.
-
+# Arquivo de configuração para a CONTA 1 (API, Postgres, Redis)
 services:
-  # 1. Serviço da API .NET
+  # 1. Serviço da API .NET (Ocupando o espaço de serviço web gratuito desta conta)
   - type: web
     name: lead2buy-api
-    plan: free # <--- Ocupando o único espaço de serviço web GRATUITO
+    plan: free
     env: docker
     dockerfilePath: ./Lead2Buy.API/Dockerfile
     envVars:
@@ -20,8 +18,11 @@ services:
           type: redis
           name: lead2buy-redis
           property: connectionString
-      - key: CORS_ORIGIN # Coloque a URL do seu frontend aqui
-        value: https://rvwierzba.github.io
+      - key: CORS_ORIGIN
+        value: https://rvwierzba.github.io # A URL do seu frontend
+      # IMPORTANTE: Deixamos um espaço para a URL do Ollama que virá da outra conta
+      - key: OLLAMA_API_URL
+        value: "" # Deixe em branco por enquanto
       - key: OcrApiKey
         sync: false
       - key: MailjetApiKey
@@ -29,20 +30,19 @@ services:
       - key: MailjetApiSecret
         sync: false
 
-  # 2. Serviço do Ollama com IA
   - type: web
     name: lead2buy-ollama
-    plan: starter # <--- Plano PAGO para permitir o segundo serviço web
+    plan: free
     env: docker
-    dockerfilePath: ./ollama/Dockerfile
+    dockerfilePath: ./ollama/Dockerfile      
 
-  # 3. Serviço de Redis
+  # 2. Serviço de Redis
   - type: redis
     name: lead2buy-redis
     plan: free
     ipAllowList: []
 
 databases:
-  # 4. Banco de Dados PostgreSQL
+  # 3. Banco de Dados PostgreSQL
   - name: lead2buy-postgres
     plan: free
