@@ -11,10 +11,10 @@ RUN dotnet publish "Lead2Buy.API.csproj" -c Release -o /app/publish
 # Estágio 2: Imagem final com Ollama e a API Juntos
 FROM ollama/ollama
 
-# Instala o .NET Runtime 8.0 e outras ferramentas
+# Instala o .NET Runtime 8.0 e outras ferramentas essenciais
 RUN apt-get update && apt-get install -y dotnet-runtime-8.0 curl procps && rm -rf /var/lib/apt/lists/*
 
-# Copia a API já compilada do estágio de build
+# Copia a API já compilada do estágio de build para a imagem final
 WORKDIR /app
 COPY --from=build-api /app/publish .
 
@@ -22,8 +22,8 @@ COPY --from=build-api /app/publish .
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
-# Expõe a porta da API
+# Expõe a porta 10000 para a API .NET
 EXPOSE 10000
 
-# O comando que inicia tudo
+# Define o script de inicialização como o comando principal do contêiner
 ENTRYPOINT ["/start.sh"]
