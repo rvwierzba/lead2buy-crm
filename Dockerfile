@@ -1,20 +1,27 @@
 # Estágio 1: Build da API .NET
+# Usamos a imagem com o SDK completo para compilar a aplicação
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-api
 WORKDIR /src
+
+# Copia e restaura as dependências de toda a solução
 COPY ["Lead2Buy.sln", "."]
 COPY ["Lead2Buy.API/Lead2Buy.API.csproj", "Lead2Buy.API/"]
 RUN dotnet restore "Lead2Buy.sln"
+
+# Copia o resto do código e publica a aplicação
 COPY . .
 WORKDIR "/src/Lead2Buy.API"
-RUN dotnet publish "Lead2Buy.API.csproj" -c Release -o /app/publish
+RUN dotnet publish "Lead2Buy.API.csproj" -c Release -o /app/publish --no-restore
 
-# Estágio 2: Imagem final com Ollama e a API Juntos
-FROM ollama/ollama
 
-# Instala o .NET Runtime 8.0 e outras ferramentas essenciais
-RUN apt-get update && apt-get install -y dotnet-runtime-8.0 curl procps && rm -rf /var/lib/apt/lists/*
+# Estágio 2: Imagem Final de Produção
+# COMEÇAMOS COM A IMAGEM OFICIAL DA MICROSOFT PARA GARANTIR QUE A API RODE
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
 
-# Copia a API já compilada do estágio de build para a imagem final
+# Instala o Ollama dentro da imagem da Microsoft
+RUN curl -fsSL https://ollama.com/install.sh | sh
+
+# Copia a API já compilada do estágio de build
 WORKDIR /app
 COPY --from=build-api /app/publish .
 

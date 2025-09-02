@@ -1,11 +1,11 @@
-# Arquivo final com o super-serviço (API + Ollama) usando o Dockerfile.render
+# Arquivo final com o super-serviço (API + Ollama) usando o Dockerfile da raiz
 services:
-  # 1. Nosso "super-serviço" que roda a API e o Ollama juntos
+  # 1. Nosso serviço "combo" que roda a API e o Ollama juntos
   - type: web
     name: lead2buy-combo
     plan: free
     env: docker
-    # Aponta para o nosso novo Dockerfile na raiz do projeto
+    # Aponta para o novo Dockerfile na raiz do projeto
     dockerfilePath: ./Dockerfile
     envVars:
       - key: ASPNETCORE_URLS
@@ -20,7 +20,7 @@ services:
           name: lead2buy-redis
           property: connectionString
       - key: CORS_ORIGIN
-        value: https://rvwierzba.github.io # URL do seu frontend
+        value: https://rvwierzba.github.io
       - key: OcrApiKey
         sync: false
       - key: MailjetApiKey

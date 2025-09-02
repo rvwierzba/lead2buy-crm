@@ -1,17 +1,15 @@
 #!/bin/bash
 
-echo "Iniciando o servidor Ollama em background..."
-# Inicia o Ollama e o deixa rodando em segundo plano
-/bin/ollama serve &
+# Inicia o servidor Ollama em background
+# O script de instalação do Ollama o coloca em /usr/local/bin/ollama
+/usr/local/bin/ollama serve &
 
-# Aguarda um pouco para garantir que o Ollama iniciou
+# Aguarda 10 segundos para dar tempo ao Ollama de iniciar
 sleep 10
 
 echo "Tentando baixar o modelo phi4-mini em background..."
-# Tenta baixar o modelo. Se falhar, a aplicação não quebra.
-ollama pull phi4-mini:q4_0 &
+/usr/local/bin/ollama pull phi4-mini:q4_0 &
 
 echo "Iniciando a API .NET..."
-# Inicia a sua API .NET, que fica como o processo principal
-# A variável ASPNETCORE_URLS será fornecida pelo Render
+# Inicia a sua API .NET, que fica como o processo principal do contêiner
 dotnet Lead2Buy.API.dll
