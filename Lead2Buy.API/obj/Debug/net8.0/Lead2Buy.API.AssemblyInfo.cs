@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Lead2Buy.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+478c05688379ac42ec359e0d68adb25f835b9e5a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e99578537b20c3c785ae22f512e0c534effcd5e5")]
 [assembly: System.Reflection.AssemblyProductAttribute("Lead2Buy.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Lead2Buy.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

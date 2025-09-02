@@ -1,12 +1,12 @@
-# Arquivo de configuração com os 4 serviços solicitados no plano gratuito.
-# ATENÇÃO: Este arquivo tenta usar DOIS serviços do tipo 'web' no plano gratuito.
+# Arquivo final com o super-serviço (API + Ollama)
 services:
-  # 1. Serviço da API .NET
+  # 1. Nosso "super-serviço" que roda a API e o Ollama juntos
   - type: web
-    name: lead2buy-api
-    plan: free # <--- Serviço Web Gratuito #1
+    name: lead2buy-combo
+    plan: free
     env: docker
-    dockerfilePath: ./Lead2Buy.API/Dockerfile
+    # Aponta para o nosso novo Dockerfile na raiz do projeto
+    dockerfilePath: ./Dockerfile.combo
     envVars:
       - key: ASPNETCORE_URLS
         value: http://+:10000
@@ -21,10 +21,6 @@ services:
           property: connectionString
       - key: CORS_ORIGIN
         value: https://rvwierzba.github.io # URL do seu frontend
-      - key: OLLAMA_API_URL
-        # Se o deploy funcionar, o Render criará a URL interna automaticamente.
-        # Caso contrário, você pode precisar ajustar isso manualmente.
-        value: http://lead2buy-ollama:11434
       - key: OcrApiKey
         sync: false
       - key: MailjetApiKey
@@ -32,20 +28,13 @@ services:
       - key: MailjetApiSecret
         sync: false
 
-  # 2. Serviço do Ollama
-  - type: web
-    name: lead2buy-ollama
-    plan: free # <--- Serviço Web Gratuito #2
-    env: docker
-    dockerfilePath: ./ollama/Dockerfile
-
-  # 3. Serviço de Redis
+  # 2. Serviço de Redis
   - type: redis
     name: lead2buy-redis
     plan: free
     ipAllowList: []
 
 databases:
-  # 4. Banco de Dados PostgreSQL
+  # 3. Banco de Dados PostgreSQL
   - name: lead2buy-postgres
     plan: free
