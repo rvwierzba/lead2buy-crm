@@ -1,11 +1,8 @@
-# Arquivo final com o super-serviço (API + Ollama)
 services:
-  # 1. Nosso serviço "combo" que roda a API e o Ollama juntos
   - type: web
     name: lead2buy-combo
     plan: free
     env: docker
-    # Aponta para o novo Dockerfile na raiz do projeto
     dockerfilePath: ./Dockerfile
     envVars:
       - key: ASPNETCORE_URLS
@@ -27,14 +24,10 @@ services:
         sync: false
       - key: MailjetApiSecret
         sync: false
-
-  # 2. Serviço de Redis
   - type: redis
     name: lead2buy-redis
     plan: free
     ipAllowList: []
-
 databases:
-  # 3. Banco de Dados PostgreSQL
   - name: lead2buy-postgres
     plan: free
