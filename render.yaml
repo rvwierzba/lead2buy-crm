@@ -1,4 +1,4 @@
-# Arquivo final com o super-serviço (API + Ollama) usando o Dockerfile da raiz
+# Arquivo final com o super-serviço (API + Ollama)
 services:
   # 1. Nosso serviço "combo" que roda a API e o Ollama juntos
   - type: web

@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Inicia o servidor Ollama em background
-# O script de instalação do Ollama o coloca em /usr/local/bin/ollama
 /usr/local/bin/ollama serve &
 
 # Aguarda 10 segundos para dar tempo ao Ollama de iniciar
