@@ -1,4 +1,4 @@
-# Versão final para hospedar o backend no Render e o frontend no GitHub Pages
+# Configuração para rodar a API, Redis e Banco de Dados no Render
 services:
   # 1. Serviço da API .NET (seu único serviço web gratuito)
   - type: web
@@ -8,7 +8,7 @@ services:
     dockerfilePath: ./Lead2Buy.API/Dockerfile
     envVars:
       - key: ASPNETCORE_URLS
-        value: http://+:10000
+        value: http+:10000
       - key: ConnectionStrings__DefaultConnection
         fromDatabase:
           name: lead2buy-postgres
@@ -18,7 +18,6 @@ services:
           type: redis
           name: lead2buy-redis
           property: connectionString
-      # CORREÇÃO: Aponta para a URL do GitHub Pages para permitir a comunicação
       - key: CORS_ORIGIN
         value: https://rvwierzba.github.io
       - key: OcrApiKey
