@@ -1,6 +1,6 @@
-# Versão final e completa do render.yaml
+# Versão final para hospedar o backend no Render e o frontend no GitHub Pages
 services:
-  # 1. Serviço da API .NET
+  # 1. Serviço da API .NET (seu único serviço web gratuito)
   - type: web
     name: lead2buy-api
     plan: free
@@ -18,8 +18,9 @@ services:
           type: redis
           name: lead2buy-redis
           property: connectionString
+      # CORREÇÃO: Aponta para a URL do GitHub Pages para permitir a comunicação
       - key: CORS_ORIGIN
-        value: https://lead2buy-frontend.onrender.com
+        value: https://rvwierzba.github.io
       - key: OcrApiKey
         sync: false
       - key: MailjetApiKey
@@ -27,30 +28,13 @@ services:
       - key: MailjetApiSecret
         sync: false
 
-  # 2. Serviço do Ollama
-  - type: web
-    name: lead2buy-ollama
-    plan: free
-    env: docker
-    dockerfilePath: ./ollama/Dockerfile
-
-  # 3. Serviço do Frontend (CORRIGIDO)
-  - type: web
-    name: lead2buy-frontend
-    runtime: static
-    buildCommand: npm --prefix ./lead2buy-frontend install && npm --prefix ./lead2buy-frontend run build
-    publishPath: ./lead2buy-frontend/dist # Esta linha é obrigatória
-    envVars:
-      - key: VITE_API_BASE_URL
-        value: https://lead2buy-api.onrender.com
-
-  # 4. Serviço de Redis
+  # 2. Serviço de Redis
   - type: redis
     name: lead2buy-redis
     plan: free
     ipAllowList: []
 
 databases:
-  # 5. Banco de Dados PostgreSQL
+  # 3. Banco de Dados PostgreSQL
   - name: lead2buy-postgres
     plan: free
