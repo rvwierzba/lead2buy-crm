@@ -17,7 +17,7 @@ services:
           name: lead2buy-redis
           property: connectionString
       - key: CORS_ORIGIN
-        value: https://rvwierzba.github.io
+        value: https://www.rvwtech.com.br
       - key: OcrApiKey
         sync: false
       - key: MailjetApiKey
