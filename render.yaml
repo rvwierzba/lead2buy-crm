@@ -20,12 +20,10 @@ services:
         sync: false
       - key: MailjetApiSecret
         sync: false
-
   - type: redis
     name: lead2buy-redis
     plan: free
     ipAllowList: []
-
 databases:
   - name: lead2buy-postgres
     plan: free
