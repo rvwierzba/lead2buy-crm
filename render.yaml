@@ -10,14 +10,17 @@ services:
     envVars:
       - key: ASPNETCORE_URLS
         value: http://+:10000
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: lead2buy-postgres
+          property: connectionString
       - key: RedisConnectionString
         fromService:
           type: redis
           name: lead2buy-redis
           property: connectionString
       - key: CORS_ORIGIN
-        value: https://www.rvwtech.com.br # Seu domínio final
-      # As chaves secretas DEVEM ser adicionadas manualmente no dashboard do Render
+        value: https://www.rvwtech.com.br
       - key: OcrApiKey
         sync: false
       - key: MailjetApiKey
