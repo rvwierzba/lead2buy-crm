@@ -1,9 +1,11 @@
-# Arquivo final com o super-serviço e conexão via Environment Variable
+# Arquivo final com o super-serviço (API + Ollama)
 services:
+  # 1. Nosso serviço "combo" que roda a API e o Ollama juntos
   - type: web
     name: lead2buy-combo
     plan: free
     env: docker
+    # Aponta para o novo Dockerfile na raiz do projeto
     dockerfilePath: ./Dockerfile
     envVars:
       - key: ASPNETCORE_URLS
@@ -14,7 +16,8 @@ services:
           name: lead2buy-redis
           property: connectionString
       - key: CORS_ORIGIN
-        value: https://www.rvwtech.com.br/lead2buy-crm
+        value: https://www.rvwtech.com.br # Seu domínio final
+      # As chaves secretas DEVEM ser adicionadas manualmente no dashboard do Render
       - key: OcrApiKey
         sync: false
       - key: MailjetApiKey
@@ -22,11 +25,13 @@ services:
       - key: MailjetApiSecret
         sync: false
 
+  # 2. Serviço de Redis
   - type: redis
     name: lead2buy-redis
     plan: free
     ipAllowList: []
 
 databases:
+  # 3. Banco de Dados PostgreSQL
   - name: lead2buy-postgres
     plan: free
