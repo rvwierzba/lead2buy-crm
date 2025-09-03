@@ -1,4 +1,4 @@
-# render.yaml
+# render.yaml CORRIGIDO
 services:
   - type: web
     name: lead2buy-combo
@@ -21,9 +21,6 @@ services:
         sync: false
       - key: MailjetApiSecret
         sync: false
-    # Adicione estas linhas se necessário:
-    buildCommand: dotnet restore && dotnet publish -c Release -o ./publish
-    startCommand: dotnet Lead2Buy.API.dll
 
   - type: redis
     name: lead2buy-redis
