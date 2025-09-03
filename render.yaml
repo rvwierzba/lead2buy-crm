@@ -1,3 +1,4 @@
+# Arquivo final com o super-serviço e conexão via Environment Variable
 services:
   - type: web
     name: lead2buy-combo
@@ -7,27 +8,25 @@ services:
     envVars:
       - key: ASPNETCORE_URLS
         value: http://+:10000
-      - key: ConnectionStrings__DefaultConnection
-        fromDatabase:
-          name: lead2buy-postgres
-          property: connectionString
       - key: RedisConnectionString
         fromService:
           type: redis
           name: lead2buy-redis
           property: connectionString
       - key: CORS_ORIGIN
-        value: https://www.rvwtech.com.br
+        value: https://www.rvwtech.com.br/lead2buy-crm
       - key: OcrApiKey
         sync: false
       - key: MailjetApiKey
         sync: false
       - key: MailjetApiSecret
         sync: false
+
   - type: redis
     name: lead2buy-redis
     plan: free
     ipAllowList: []
+
 databases:
   - name: lead2buy-postgres
     plan: free
