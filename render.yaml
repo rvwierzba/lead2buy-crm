@@ -1,4 +1,4 @@
-# render.yaml CORRIGIDO
+# render.yaml corrigido
 services:
   - type: web
     name: lead2buy-combo
@@ -12,6 +12,11 @@ services:
         fromService:
           type: redis
           name: lead2buy-redis
+          property: connectionString
+      - key: ConnectionStrings__DefaultConnection
+        fromService:
+          type: postgres
+          name: lead2buy-postgres
           property: connectionString
       - key: CORS_ORIGIN
         value: https://www.rvwtech.com.br

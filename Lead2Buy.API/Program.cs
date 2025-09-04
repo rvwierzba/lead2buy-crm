@@ -12,14 +12,17 @@ var builder = WebApplication.CreateBuilder(args);
 // --- Serviços ---
 builder.Services.AddHttpClient("OllamaClient", client => { client.Timeout = TimeSpan.FromSeconds(300); });
 var corsOrigin = builder.Configuration["CORS_ORIGIN"];
-builder.Services.AddCors(options => {
-    options.AddPolicy("AllowVueApp", policy => {
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowVueApp", policy =>
+    {
         policy.WithOrigins("http://localhost:8080", "http://localhost:5173", corsOrigin ?? "")
               .AllowAnyHeader().AllowAnyMethod().AllowCredentials();
     });
 });
+var connectionString = builder.Configuration["ConnectionStrings:DefaultConnection"];
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString(connectionString)));
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp => 
 {
     var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnectionString");
