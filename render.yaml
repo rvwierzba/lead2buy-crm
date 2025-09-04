@@ -1,4 +1,3 @@
-# render.yaml corrigido
 services:
   - type: web
     name: lead2buy-combo
@@ -14,10 +13,7 @@ services:
           name: lead2buy-redis
           property: connectionString
       - key: ConnectionStrings__DefaultConnection
-        fromService:
-          type: dpg
-          name: lead2buy-postgres
-          property: connectionString
+        value: "Host=${POSTGRES_HOST};Database=${POSTGRES_DATABASE};Username=${POSTGRES_USERNAME};Password=${POSTGRES_PASSWORD};SSL Mode=Require;Trust Server Certificate=true"
       - key: CORS_ORIGIN
         value: https://www.rvwtech.com.br
       - key: OcrApiKey
@@ -26,6 +22,12 @@ services:
         sync: false
       - key: MailjetApiSecret
         sync: false
+      - key: Jwt__Key
+        value: "cd388ceee7836f3498e43fbbce45d42351dbbfb324e16ed8805c04bd8ce30f85"
+      - key: Jwt__Issuer
+        value: "https://lead2buy-combo.onrender.com"
+      - key: Jwt__Audience
+        value: "https://lead2buy-combo.onrender.com"
 
   - type: redis
     name: lead2buy-redis
