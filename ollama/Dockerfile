@@ -1,10 +1,9 @@
 # Imagem base oficial do Ollama
 FROM ollama/ollama
 
-# A imagem do Ollama é mínima. Precisamos instalar o 'netcat' (nc)
-# para que o nosso script entrypoint.sh consiga verificar o status do servidor.
-# O 'procps' também é útil para gerenciamento de processos.
-RUN apt-get update && apt-get install -y netcat procps && rm -rf /var/lib/apt/lists/*
+# A imagem do Ollama é minimalista. Precisamos instalar uma versão específica do netcat.
+# 'netcat-openbsd' é o pacote correto para esta base de imagem.
+RUN apt-get update && apt-get install -y netcat-openbsd procps && rm -rf /var/lib/apt/lists/*
 
 # Copia o nosso script de inicialização para dentro da imagem
 COPY entrypoint.sh /entrypoint.sh
