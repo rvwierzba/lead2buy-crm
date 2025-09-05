@@ -1,9 +1,12 @@
+# Arquivo final e simplificado para rodar a API no plano gratuito
 services:
+  # 1. API .NET (Ocupando o único espaço de serviço web gratuito)
   - type: web
-    name: lead2buy-combo
+    name: lead2buy-api
     plan: free
     env: docker
-    dockerfilePath: ./Dockerfile
+    # Aponta para o Dockerfile ORIGINAL da sua API
+    dockerfilePath: ./Lead2Buy.API/Dockerfile
     envVars:
       - key: ASPNETCORE_URLS
         value: http://+:10000
@@ -12,30 +15,23 @@ services:
           type: redis
           name: lead2buy-redis
           property: connectionString
-      - key: ConnectionStrings__DefaultConnection
-        value: "Host=${POSTGRES_HOST};Database=${POSTGRES_DATABASE};Username=${POSTGRES_USERNAME};Password=${POSTGRES_PASSWORD};SSL Mode=Require;Trust Server Certificate=true"
       - key: CORS_ORIGIN
-        value: https://www.rvwtech.com.br
+        value: https://www.rvwtech.com.br # Seu domínio final
+      # As chaves secretas (ApiKey, etc.) devem ser adicionadas manualmente no dashboard
       - key: OcrApiKey
         sync: false
       - key: MailjetApiKey
         sync: false
       - key: MailjetApiSecret
         sync: false
-      - key: Jwt__Key
-        value: "cd388ceee7836f3498e43fbbce45d42351dbbfb324e16ed8805c04bd8ce30f85"
-      - key: Jwt__Issuer
-        value: "https://lead2buy-combo.onrender.com"
-      - key: Jwt__Audience
-        value: "https://lead2buy-combo.onrender.com"
 
+  # 2. Redis
   - type: redis
     name: lead2buy-redis
     plan: free
     ipAllowList: []
 
 databases:
+  # 3. PostgreSQL
   - name: lead2buy-postgres
     plan: free
-    databaseName: lead2buy
-    user: lead2buy_user
