@@ -1,5 +1,5 @@
+# Imagem base oficial
 FROM ollama/ollama
-RUN apt-get update && apt-get install -y netcat-openbsd procps && rm -rf /var/lib/apt/lists/*
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+
+# Baixa o modelo durante a construção da imagem. É mais confiável.
+RUN ollama pull phi4-mini:q4_0
