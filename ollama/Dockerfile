@@ -1,8 +1,16 @@
+# Imagem base oficial do Ollama
 FROM ollama/ollama
 
-# Este comando baixa o modelo durante a construção da imagem.
-# É mais confiável do que tentar baixar depois que o serviço sobe.
-RUN ollama pull phi4-mini:q4_0
+# A imagem do Ollama é mínima. Precisamos instalar o 'netcat' (nc)
+# para que o nosso script entrypoint.sh consiga verificar o status do servidor.
+# O 'procps' também é útil para gerenciamento de processos.
+RUN apt-get update && apt-get install -y netcat procps && rm -rf /var/lib/apt/lists/*
 
-# A imagem base do ollama/ollama já sabe que o comando para iniciar é "ollama serve".
-# Não precisamos de mais nada aqui.
+# Copia o nosso script de inicialização para dentro da imagem
+COPY entrypoint.sh /entrypoint.sh
+
+# Dá permissão de execução para o script
+RUN chmod +x /entrypoint.sh
+
+# Define o nosso script como o comando de entrada principal do contêiner
+ENTRYPOINT ["/entrypoint.sh"]
