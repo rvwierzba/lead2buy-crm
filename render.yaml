@@ -1,12 +1,10 @@
-# Arquivo final e simplificado para rodar a API no plano gratuito
 services:
-  # 1. API .NET (Ocupando o único espaço de serviço web gratuito)
+  # 1. Nosso serviço "combo" que roda a API e o Ollama juntos
   - type: web
-    name: lead2buy-api
+    name: lead2buy-combo
     plan: free
     env: docker
-    # Aponta para o Dockerfile ORIGINAL da sua API
-    dockerfilePath: ./Lead2Buy.API/Dockerfile
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: ASPNETCORE_URLS
         value: http://+:10000
@@ -16,8 +14,7 @@ services:
           name: lead2buy-redis
           property: connectionString
       - key: CORS_ORIGIN
-        value: https://www.rvwtech.com.br # Seu domínio final
-      # As chaves secretas (ApiKey, etc.) devem ser adicionadas manualmente no dashboard
+        value: https://www.rvwtech.com.br
       - key: OcrApiKey
         sync: false
       - key: MailjetApiKey
@@ -25,13 +22,13 @@ services:
       - key: MailjetApiSecret
         sync: false
 
-  # 2. Redis
+  # 2. Serviço de Redis
   - type: redis
     name: lead2buy-redis
     plan: free
     ipAllowList: []
 
 databases:
-  # 3. PostgreSQL
+  # 3. Banco de Dados PostgreSQL
   - name: lead2buy-postgres
     plan: free
