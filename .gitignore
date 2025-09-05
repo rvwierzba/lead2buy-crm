@@ -1,0 +1,29 @@
+# Arquivo .gitignore para projetos .NET e Docker
+
+# Arquivo de segredos que NUNCA deve ir para o GitHub
+.env
+
+# Pastas de dependências e build do .NET
+[Bb]in/
+[Oo]bj/
+
+# Arquivos gerados pelo Visual Studio e outras IDEs
+.vs/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Arquivos de log e cache
+*.log
+*.cache
+*.tmp
+
+# Pacotes NuGet
+packages/
+*.nupkg
+
+# Arquivos do sistema operacional
+[Tt]humbs.db
+.DS_Store
