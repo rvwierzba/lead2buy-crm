@@ -7,13 +7,12 @@ services:
     container_name: lead2buy_api
     ports:
       - "5000:8080"
-    # Lê as variáveis de ambiente do arquivo .env
     env_file:
       - .env
     depends_on:
       - db
       - ollama
-      - redis # Dependência do Redis adicionada
+      - redis
     restart: unless-stopped
     networks:
       - lead2buy-net
@@ -22,7 +21,6 @@ services:
   db:
     image: postgres:latest
     container_name: lead2buy_postgres
-    # Lê as variáveis de ambiente do arquivo .env
     env_file:
       - .env
     ports:
@@ -33,7 +31,7 @@ services:
     networks:
       - lead2buy-net
 
-  # Serviço do Ollama com o modelo
+  # Serviço do Ollama com o modelo (Simplificado)
   ollama:
     build:
       context: ./ollama
