@@ -6,10 +6,9 @@ services:
     container_name: lead2buy_api
     ports:
       - "5000:8080"
-    # Adicionamos a variável de ambiente diretamente aqui para garantir que seja lida
     environment:
-      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=lead2buy_db;Username=postgres;Password=@RVWSecretLeadsData
-    # O env_file continua, pois ele carrega as outras variáveis
+      # Corrigido: A senha agora está entre aspas para lidar com o caractere '@'
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=lead2buy_db;Username=postgres;Password='@RVWSecretLeadsData'
     env_file:
       - .env
     depends_on:
@@ -33,10 +32,9 @@ services:
     networks:
       - lead2buy-net
 
+  # Simplificado para usar a imagem oficial e garantir estabilidade
   ollama:
-    build:
-      context: ./ollama
-      dockerfile: Dockerfile
+    image: ollama/ollama
     container_name: lead2buy_ollama
     ports:
       - "11434:11434"
