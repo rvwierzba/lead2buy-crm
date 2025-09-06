@@ -21,11 +21,11 @@ builder.Services.AddCors(options =>
     });
 });
 
-// AQUI ESTÁ A CORREÇÃO:
 var connectionString = builder.Configuration["ConnectionStrings:DefaultConnection"];
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString)); // Passamos a variável que já contém a string de conexão.
+    options.UseNpgsql(connectionString));
 
+// --- CORREÇÃO DEFINITIVA DO REDIS ---
 var redisConnectionString = builder.Configuration["RedisConnectionString"]; // Leitura direta da variável de ambiente
 
 if (!string.IsNullOrEmpty(redisConnectionString))
@@ -53,8 +53,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 var app = builder.Build();
 
 // --- Pipeline HTTP ---
-if (app.Environment.IsDevelopment()) { app.UseSwagger(); app.UseSwaggerUI(); }
-// app.UseHttpsRedirection(); // Removido temporariamente para o reverse proxy
+// --- CORREÇÃO DO SWAGGER ---
+// Movido para fora do if para habilitar em produção
+app.UseSwagger();
+app.UseSwaggerUI();
+
+if (app.Environment.IsDevelopment()) 
+{ 
+    // Outras configurações de desenvolvimento podem ir aqui
+}
+
+// app.UseHttpsRedirection(); // Comentado para funcionar atrás do reverse proxy Nginx
 app.UseCors("AllowVueApp");
 app.UseAuthentication();
 app.UseAuthorization();
