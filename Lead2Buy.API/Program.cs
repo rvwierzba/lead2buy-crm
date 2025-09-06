@@ -26,16 +26,19 @@ var connectionString = builder.Configuration["ConnectionStrings:DefaultConnectio
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString)); // Passamos a variável que já contém a string de conexão.
 
-builder.Services.AddSingleton<IConnectionMultiplexer>(sp => 
+var redisConnectionString = builder.Configuration["RedisConnectionString"]; // Leitura direta da variável de ambiente
+
+if (!string.IsNullOrEmpty(redisConnectionString))
 {
-    var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnectionString");
-    if (string.IsNullOrEmpty(redisConnectionString))
-    {
-        Console.WriteLine("String de conexão do Redis não encontrada, aguardando o serviço iniciar...");
-        return null;
-    }
-    return ConnectionMultiplexer.Connect(redisConnectionString);
-});
+    // Registra a conexão do Redis como um singleton
+    builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConnectionString));
+}
+else
+{
+    Console.WriteLine("AVISO CRÍTICO: String de conexão do Redis não foi encontrada. O serviço de OCR não será iniciado e a aplicação pode não funcionar corretamente.");
+    // Propositalmente não registramos o serviço para evitar o crash,
+    // mas deixamos um aviso claro de que algo está errado.
+}
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddHostedService<OcrProcessingService>();
 builder.Services.AddControllers().AddJsonOptions(options => {
