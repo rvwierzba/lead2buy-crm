@@ -1,10 +1,15 @@
-# Estágio de build
+echo '# Estágio de build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["Lead2Buy.API/Lead2Buy.API.csproj", "Lead2Buy.API/"]
-RUN dotnet restore "Lead2Buy.API/Lead2Buy.API.csproj"
+
+# Copia o arquivo .csproj e restaura as dependências
+COPY ["Lead2Buy.API.csproj", "."]
+RUN dotnet restore "./Lead2Buy.API.csproj"
+
+# Copia todo o resto do código da API
 COPY . .
-WORKDIR "/src/Lead2Buy.API"
+
+# Builda o projeto
 RUN dotnet build "Lead2Buy.API.csproj" -c Release -o /app/build
 
 # Estágio de publicação
@@ -15,4 +20,4 @@ RUN dotnet publish "Lead2Buy.API.csproj" -c Release -o /app/publish
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Lead2Buy.API.dll"]
+ENTRYPOINT ["dotnet", "Lead2Buy.API.dll"]' > ./Lead2Buy.API/Dockerfile
