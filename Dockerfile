@@ -1,3 +1,4 @@
+# Estágio de build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
@@ -19,4 +20,4 @@ RUN dotnet publish "Lead2Buy.API.csproj" -c Release -o /app/publish
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Lead2Buy.API.dll"]' > ./Lead2Buy.API/Dockerfile
+ENTRYPOINT ["dotnet", "Lead2Buy.API.dll"]
