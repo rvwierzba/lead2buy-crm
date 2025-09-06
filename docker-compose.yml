@@ -1,5 +1,4 @@
 services:
-  # Serviço da API .NET
   api:
     build:
       context: ./Lead2Buy.API
@@ -17,7 +16,6 @@ services:
     networks:
       - lead2buy-net
 
-  # Serviço do Banco de Dados PostgreSQL
   db:
     image: postgres:latest
     container_name: lead2buy_postgres
@@ -31,7 +29,6 @@ services:
     networks:
       - lead2buy-net
 
-  # Serviço do Ollama com o modelo (Simplificado)
   ollama:
     build:
       context: ./ollama
@@ -45,7 +42,6 @@ services:
     networks:
       - lead2buy-net
   
-  # Serviço do Redis
   redis:
     image: "redis:alpine"
     container_name: lead2buy_redis
