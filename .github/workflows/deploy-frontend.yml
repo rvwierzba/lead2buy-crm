@@ -32,7 +32,7 @@ jobs:
         run: npm --prefix ./lead2buy-frontend run build
         env:
           # Define a URL da sua API do Render para o processo de build
-          VITE_API_BASE_URL: https://lead2buy-api.onrender.com
+          VITE_API_BASE_URL: http://191.252.192.158:5000
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
