@@ -1,7 +1,7 @@
 import * as signalR from "@microsoft/signalr";
 import { useAuthStore } from "@/stores/authStore";
 
-const URL = "http://localhost:5000/notificationHub"; // A URL do nosso Hub
+const URL = "http://191.252.192.158:5000/notificationHub"; // A URL do nosso Hub
 
 class SignalRService {
     constructor() {

@@ -5,7 +5,7 @@ import vue from '@vitejs/plugin-vue'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/lead2buy-crm/', // <--- ADICIONE ESTA LINHA
+  base: '/lead2buy-crm/',
   plugins: [
     vue(),
   ],
