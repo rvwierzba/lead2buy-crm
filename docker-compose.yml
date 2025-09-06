@@ -6,11 +6,15 @@ services:
     container_name: lead2buy_api
     ports:
       - "5000:8080"
+    # MUDANÇA CRÍTICA: Definimos TUDO aqui, sem env_file para a API.
     environment:
-      # Corrigido: A senha agora está entre aspas para lidar com o caractere '@'
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - CORS_ORIGIN=https://www.rvwtech.com.br
+      - OcrApiKey=K87679144388957
+      - MailjetApiKey=49fc3e132d31ec61110c79651eb9a22b
+      - MailjetApiSecret=541c19897679fd21aef0ae3ae9625e03
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=lead2buy_db;Username=postgres;Password='@RVWSecretLeadsData'
-    env_file:
-      - .env
     depends_on:
       - db
       - ollama
@@ -32,7 +36,6 @@ services:
     networks:
       - lead2buy-net
 
-  # Simplificado para usar a imagem oficial e garantir estabilidade
   ollama:
     image: ollama/ollama
     container_name: lead2buy_ollama
