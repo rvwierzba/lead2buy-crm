@@ -20,9 +20,12 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader().AllowAnyMethod().AllowCredentials();
     });
 });
+
+// AQUI ESTÁ A CORREÇÃO:
 var connectionString = builder.Configuration["ConnectionStrings:DefaultConnection"];
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString(connectionString)));
+    options.UseNpgsql(connectionString)); // Passamos a variável que já contém a string de conexão.
+
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp => 
 {
     var redisConnectionString = builder.Configuration.GetConnectionString("RedisConnectionString");
@@ -48,7 +51,7 @@ var app = builder.Build();
 
 // --- Pipeline HTTP ---
 if (app.Environment.IsDevelopment()) { app.UseSwagger(); app.UseSwaggerUI(); }
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // Removido temporariamente para o reverse proxy
 app.UseCors("AllowVueApp");
 app.UseAuthentication();
 app.UseAuthorization();
@@ -56,7 +59,6 @@ app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");
 
 // --- LÓGICA DE MIGRAÇÃO ROBUSTA COM RETENTATIVAS ---
-// Este bloco resolve o erro da API iniciar antes do banco de dados estar pronto.
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
 var maxRetries = 5;
 var retryDelay = TimeSpan.FromSeconds(10);
@@ -72,7 +74,7 @@ for (int i = 0; i < maxRetries; i++)
             dbContext.Database.Migrate();
             logger.LogInformation("Migrações do banco de dados aplicadas com sucesso.");
         }
-        break; // Sai do loop se a migração for bem-sucedida
+        break; 
     }
     catch (Exception ex)
     {
@@ -80,12 +82,12 @@ for (int i = 0; i < maxRetries; i++)
         if (i < maxRetries - 1)
         {
             logger.LogInformation("Aguardando {Delay} segundos antes da próxima tentativa.", retryDelay.Seconds);
-            await Task.Delay(retryDelay); // Espera assíncrona
+            await Task.Delay(retryDelay); 
         }
         else
         {
             logger.LogCritical(ex, "Não foi possível conectar ao banco de dados após {MaxAttempts} tentativas. A aplicação será encerrada.", maxRetries);
-            throw; // Lança a exceção para falhar o início da aplicação
+            throw; 
         }
     }
 }
