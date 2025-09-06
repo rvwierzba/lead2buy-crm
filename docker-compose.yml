@@ -14,7 +14,7 @@ services:
       - MailjetApiKey=49fc3e132d31ec61110c79651eb9a22b
       - MailjetApiSecret=541c19897679fd21aef0ae3ae9625e03
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=lead2buy_db;Username=postgres;Password='@RVWSecretLeadsData'
-      # AQUI ESTÁ A CORREÇÃO FINAL:
+      # AQUI ESTÁ A CORREÇÃO FINAL PARA O CRASH DA API:
       - RedisConnectionString=redis:6379
     depends_on:
       - db
@@ -47,7 +47,7 @@ services:
     restart: unless-stopped
     networks:
       - lead2buy-net
-  
+
   redis:
     image: "redis:alpine"
     container_name: lead2buy_redis
