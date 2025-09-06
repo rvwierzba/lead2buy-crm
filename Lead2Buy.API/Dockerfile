@@ -1,56 +1,23 @@
-# Versão corrigida do render.yaml com base no erro "publishPath not found"
-services:
-  # 1. Serviço da API .NET
-  - type: web
-    name: lead2buy-api
-    plan: free
-    env: docker
-    dockerfilePath: ./Lead2Buy.API/Dockerfile
-    envVars:
-      - key: ASPNETCORE_URLS
-        value: http://+:10000
-      - key: ConnectionStrings__DefaultConnection
-        fromDatabase:
-          name: lead2buy-postgres
-          property: connectionString
-      - key: RedisConnectionString
-        fromService:
-          type: redis
-          name: lead2buy-redis
-          property: connectionString
-      - key: CORS_ORIGIN
-        value: https://lead2buy-frontend.onrender.com
-      - key: OcrApiKey
-        sync: false
-      - key: MailjetApiKey
-        sync: false
-      - key: MailjetApiSecret
-        sync: false
+# Estágio de build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
 
-  # 2. Serviço do Ollama
-  - type: web
-    name: lead2buy-ollama
-    plan: free
-    env: docker
-    dockerfilePath: ./ollama/Dockerfile
+# Copia o arquivo .csproj e restaura as dependências
+COPY ["Lead2Buy.API.csproj", "."]
+RUN dotnet restore "./Lead2Buy.API.csproj"
 
-  # 3. Serviço do Frontend (CORRIGIDO)
-  # O tipo 'static_site' é o correto para serviços com 'publishPath'
-  - type: static_site
-    name: lead2buy-frontend
-    buildCommand: npm --prefix ./lead2buy-frontend install && npm --prefix ./lead2buy-frontend run build
-    publishPath: ./lead2buy-frontend/dist
-    envVars:
-      - key: VITE_API_BASE_URL
-        value: https://lead2buy-api.onrender.com
+# Copia todo o resto do código da API
+COPY . .
 
-  # 4. Serviço de Redis
-  - type: redis
-    name: lead2buy-redis
-    plan: free
-    ipAllowList: []
+# Builda o projeto
+RUN dotnet build "Lead2Buy.API.csproj" -c Release -o /app/build
 
-databases:
-  # 5. Banco de Dados PostgreSQL
-  - name: lead2buy-postgres
-    plan: free
+# Estágio de publicação
+FROM build AS publish
+RUN dotnet publish "Lead2Buy.API.csproj" -c Release -o /app/publish
+
+# Estágio final
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "Lead2Buy.API.dll"]
