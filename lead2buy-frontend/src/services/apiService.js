@@ -3,7 +3,7 @@ import { useAuthStore } from '../stores/authStore';
 
 const apiClient = axios.create({
     // Aponte diretamente para o IP do seu servidor aqui como fallback
-    baseURL: import.meta.env.VITE_API_BASE_URL ? `${import.meta.env.VITE_API_BASE_URL}/api` : 'http://191.252.192.158:5000/api',
+    baseURL: 'https://191.252.192.158/api',
     headers: {
         'Content-Type': 'application/json'
     }
