@@ -3,7 +3,7 @@ import { useAuthStore } from '../stores/authStore';
 
 const apiClient = axios.create({
     // Aponte diretamente para o IP do seu servidor aqui como fallback
-    baseURL: 'https://191.252.192.158/api',
+    baseURL: 'https://crm.rvwtech.com.br/api',
     headers: {
         'Content-Type': 'application/json'
     }

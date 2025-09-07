@@ -47,7 +47,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - CORS_ORIGIN=https://www.rvwtech.com.br
+      - CORS_ORIGIN=https://crm.rvwtech.com.br
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
       - DB_HOST=db
