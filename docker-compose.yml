@@ -14,9 +14,32 @@ services:
     networks:
       - lead2buy-network
 
+  redis:
+    image: redis:alpine
+    container_name: lead2buy-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - lead2buy-network
+
+  ollama:
+    build:
+      context: ./ollama
+      dockerfile: Dockerfile
+    container_name: lead2buy-ollama
+    restart: always
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - lead2buy-network
+
   lead2buy-api:
     build:
-      # Contexto da API (já corrigido anteriormente)
       context: ./Lead2Buy.API
       dockerfile: Dockerfile
     container_name: lead2buy-api
@@ -24,7 +47,8 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - CORS_ORIGIN=https://rvwierzba.github.io
+      - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
       - DB_HOST=db
       - DB_PORT=5432
@@ -34,22 +58,12 @@ services:
       - JWT_KEY=${JWT_KEY}
       - JWT_ISSUER=${JWT_ISSUER}
       - JWT_AUDIENCE=${JWT_AUDIENCE}
+      - REDIS_CONNECTION_STRING=redis:6379
+      - OLLAMA_URL=http://ollama:11434
     depends_on:
       - db
-    networks:
-      - lead2buy-network
-
-  lead2buy-frontend:
-    build:
-      # --- NOVA CORREÇÃO AQUI ---
-      # Aponta para o Dockerfile correto na raiz do projeto.
-      context: .
-      dockerfile: Dockerfile
-      # --- FIM DA CORREÇÃO ---
-    container_name: lead2buy-frontend
-    restart: always
-    ports:
-      - "5173:5173"
+      - redis
+      - ollama
     networks:
       - lead2buy-network
 
@@ -63,7 +77,6 @@ services:
       - ./deployment/nginx/lead2buy-api.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - lead2buy-api
-      - lead2buy-frontend
     networks:
       - lead2buy-network
 
@@ -73,3 +86,5 @@ networks:
 
 volumes:
   postgres_data:
+  redis_data:
+  ollama_data:

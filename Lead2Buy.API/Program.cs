@@ -10,29 +10,43 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- Serviços ---
 builder.Services.AddHttpClient("OllamaClient", client => { client.Timeout = TimeSpan.FromSeconds(300); });
+
 var corsOrigin = builder.Configuration["CORS_ORIGIN"];
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowVueApp", policy =>
+    options.AddPolicy("AllowSpecificOrigin", policy =>
     {
-        policy.WithOrigins("http://localhost:8080", "http://localhost:5173", corsOrigin ?? "")
-              .AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+        var origins = !string.IsNullOrEmpty(corsOrigin)
+            ? new[] { corsOrigin }
+            : new[] { "http://localhost:8080", "http://localhost:5173" };
+        
+        policy.WithOrigins(origins)
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
 var connectionString = builder.Configuration["ConnectionStrings:DefaultConnection"];
-builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+// Modificação para ler do .env
+var dbHost = builder.Configuration["DB_HOST"];
+var dbPort = builder.Configuration["DB_PORT"];
+var dbName = builder.Configuration["DB_NAME"];
+var dbUser = builder.Configuration["DB_USER"];
+var dbPassword = builder.Configuration["DB_PASSWORD"];
+var fullConnectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPassword};";
+builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(fullConnectionString));
 
-var redisConnectionString = builder.Configuration["RedisConnectionString"];
+
+var redisConnectionString = builder.Configuration["REDIS_CONNECTION_STRING"];
 if (!string.IsNullOrEmpty(redisConnectionString))
 {
     builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConnectionString));
 }
 else
 {
-    Console.WriteLine("AVISO CRÍTICO: String de conexão do Redis não foi encontrada. O serviço de OCR não será iniciado.");
+    Console.WriteLine("AVISO CRÍTICO: String de conexão do Redis não foi encontrada.");
 }
 
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -43,7 +57,6 @@ builder.Services.AddControllers().AddJsonOptions(options => {
 builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 
-// --- CORREÇÃO DEFINITIVA DO SWAGGER COM AUTENTICAÇÃO ---
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "Lead2Buy API", Version = "v1" });
@@ -85,23 +98,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 var app = builder.Build();
 
-// --- Pipeline HTTP ---
-app.UseSwagger();
-app.UseSwaggerUI();
+ app.UseSwagger();
+ app.UseSwaggerUI(c =>
+ {
+     // Acessa o Swagger na raiz do seu IP: http://191.252.192.158/
+     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Lead2Buy API V1");
+     c.RoutePrefix = string.Empty; 
+ });
 
-if (app.Environment.IsDevelopment())
-{
-    // Configurações de desenvolvimento
-}
 
-app.UseCors("AllowVueApp");
+app.UseCors("AllowSpecificOrigin");
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");
 
-// --- Lógica de Migração ---
 #region Database Migration
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
 var maxRetries = 5;
@@ -138,4 +150,3 @@ for (int i = 0; i < maxRetries; i++)
 #endregion
 
 app.Run();
-
