@@ -16,11 +16,9 @@ services:
 
   lead2buy-api:
     build:
-      # --- ALTERAÇÃO PRINCIPAL AQUI ---
-      # Aponta o contexto de build para a pasta da API, resolvendo o erro.
+      # Contexto da API (já corrigido anteriormente)
       context: ./Lead2Buy.API
       dockerfile: Dockerfile
-      # --- FIM DA ALTERAÇÃO ---
     container_name: lead2buy-api
     restart: always
     ports:
@@ -43,8 +41,11 @@ services:
 
   lead2buy-frontend:
     build:
-      context: ./lead2buy-frontend
+      # --- NOVA CORREÇÃO AQUI ---
+      # Aponta para o Dockerfile correto na raiz do projeto.
+      context: .
       dockerfile: Dockerfile
+      # --- FIM DA CORREÇÃO ---
     container_name: lead2buy-frontend
     restart: always
     ports:
