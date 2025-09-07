@@ -68,7 +68,6 @@ services:
       - lead2buy-network
 
   nginx:
-    # O Nginx agora é construído a partir do Dockerfile na raiz
     build: .
     container_name: lead2buy-nginx
     restart: always
@@ -80,6 +79,8 @@ services:
       - /var/www/html:/var/www/html
     depends_on:
       - lead2buy-api
+    networks:
+      - lead2buy-network
 
 networks:
   lead2buy-network:
