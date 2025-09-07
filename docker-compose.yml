@@ -1,10 +1,8 @@
-# Sem 'version' e usando postgres:16-alpine, como discutimos
 services:
   db:
     image: postgres:16-alpine
     container_name: lead2buy-db
     restart: always
-    # Esta seção garante que as variáveis do seu .env sejam usadas para criar o banco
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -18,25 +16,23 @@ services:
 
   lead2buy-api:
     build:
-      context: .
-      dockerfile: Lead2Buy.API/Dockerfile
+      # --- ALTERAÇÃO PRINCIPAL AQUI ---
+      # Aponta o contexto de build para a pasta da API, resolvendo o erro.
+      context: ./Lead2Buy.API
+      dockerfile: Dockerfile
+      # --- FIM DA ALTERAÇÃO ---
     container_name: lead2buy-api
     restart: always
     ports:
       - "8080:8080"
-    # Esta seção garante que a API se conecte ao banco usando as credenciais do .env
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - DB_HOST=db
       - DB_PORT=5432
-      # --- CREDENCIAIS CORRIGIDAS ---
-      # A API usa essas variáveis para montar a string de conexão.
-      # Elas são lidas diretamente do seu arquivo .env
       - DB_NAME=${POSTGRES_DB}
       - DB_USER=${POSTGRES_USER}
       - DB_PASSWORD=${POSTGRES_PASSWORD}
-      # --- FIM DA CORREÇÃO ---
       - JWT_KEY=${JWT_KEY}
       - JWT_ISSUER=${JWT_ISSUER}
       - JWT_AUDIENCE=${JWT_AUDIENCE}
