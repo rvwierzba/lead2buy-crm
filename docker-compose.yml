@@ -79,8 +79,6 @@ services:
       - /var/www/html:/var/www/html
     depends_on:
       - lead2buy-api
-    networks:
-      - lead2buy-network
 
 networks:
   lead2buy-network:

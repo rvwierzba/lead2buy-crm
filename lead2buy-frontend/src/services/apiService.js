@@ -2,17 +2,12 @@ import axios from 'axios';
 import { useAuthStore } from '../stores/authStore';
 
 const apiClient = axios.create({
-  // --- A ÚNICA ALTERAÇÃO NECESSÁRIA ESTÁ AQUI ---
-  // A baseURL agora é relativa ('/'), pois o frontend e o backend
-  // estão no mesmo domínio (https://crm.rvwtech.com.br).
   baseURL: '/',
-  // --- FIM DA ALTERAÇÃO ---
   headers: {
     'Content-Type': 'application/json'
   }
 });
 
-// Interceptor de REQUISIÇÃO: Adiciona o token antes de enviar
 apiClient.interceptors.request.use(config => {
   const authStore = useAuthStore();
   const token = authStore.token;
@@ -24,7 +19,6 @@ apiClient.interceptors.request.use(config => {
   return Promise.reject(error);
 });
 
-// Interceptor de RESPOSTA: Lida com token expirado (erro 401)
 apiClient.interceptors.response.use(
   (response) => {
     return response;
@@ -39,18 +33,13 @@ apiClient.interceptors.response.use(
   }
 );
 
-// O restante do seu arquivo, com todos os seus métodos, continua igual
 export default {
-  // --- Métodos de Autenticação ---
   register(userData) {
-    // A chamada agora será para: https://crm.rvwtech.com.br/api/auth/register
     return apiClient.post('/api/auth/register', userData);
   },
   login(credentials) {
     return apiClient.post('/api/auth/login', credentials);
   },
-
-  // --- Métodos para Contatos ---
   getContacts(search = '', status = '') {
     return apiClient.get('/api/contacts', { params: { search, status } });
   },
@@ -77,10 +66,7 @@ export default {
   downloadImportTemplate() {
     return apiClient.get('/api/contacts/import-template', { responseType: 'blob' });
   },
-
-  // --- Métodos para Tarefas ---
   getTasksForContact(contactId) {
-    // Pequena correção: idealmente, você deve filtrar as tarefas por contato
     return apiClient.get(`/api/tasks/contact/${contactId}`);
   },
   createTask(taskData) {
@@ -92,8 +78,6 @@ export default {
   deleteTask(id) {
     return apiClient.delete(`/api/tasks/${id}`);
   },
-
-  // --- Métodos para Dashboard ---
   getDashboardStats() {
     return apiClient.get('/api/dashboard/statistics');
   },
@@ -103,8 +87,6 @@ export default {
   getPerformanceBySource() {
     return apiClient.get('/api/dashboard/performance-by-source');
   },
-
-  // --- Métodos para Chatbot ---
   converseWithChatbot(prompt) {
     return apiClient.post('/api/chatbot/converse', { prompt });
   },
@@ -112,7 +94,7 @@ export default {
     const formData = new FormData();
     formData.append('prompt', prompt);
     formData.append('file', file);
-    formData.append('userId', userId); // Garante que o userId seja enviado
+    formData.append('userId', userId);
     return apiClient.post('/api/chatbot/converse-with-attachment', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
   }
 };
