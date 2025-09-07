@@ -1,67 +1,78 @@
+# Sem 'version' e usando postgres:16-alpine, como discutimos
 services:
-  api:
-    build:
-      context: ./Lead2Buy.API
-      dockerfile: Dockerfile
-    container_name: lead2buy_api
-    ports:
-      - "5000:8080"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:8080
-      - CORS_ORIGIN=https://www.rvwtech.com.br
-      - OcrApiKey=K87679144388957
-      - MailjetApiKey=49fc3e132d31ec61110c79651eb9a22b
-      - MailjetApiSecret=541c19897679fd21aef0ae3ae9625e03
-      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=lead2buy_db;Username=postgres;Password='@RVWSecretLeadsData'
-      - RedisConnectionString=redis:6379
-      # --- AQUI ESTÁ A CORREÇÃO FINAL PARA O CRASH ---
-      - Jwt__Issuer=Lead2BuyAPI
-      - Jwt__Audience=Lead2BuyUsers
-      - Jwt__Key=cd388ceee7836f3498e43fbbce45d42351dbbfb324e16ed8805c04bd8ce30f85
-    depends_on:
-      - db
-      - ollama
-      - redis
-    restart: unless-stopped
-    networks:
-      - lead2buy-net
-
   db:
-    image: postgres:latest
-    container_name: lead2buy_postgres
-    env_file:
-      - .env
+    image: postgres:16-alpine
+    container_name: lead2buy-db
+    restart: always
+    # Esta seção garante que as variáveis do seu .env sejam usadas para criar o banco
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
     networks:
-      - lead2buy-net
+      - lead2buy-network
 
-  ollama:
-    image: ollama/ollama
-    container_name: lead2buy_ollama
+  lead2buy-api:
+    build:
+      context: .
+      dockerfile: Lead2Buy.API/Dockerfile
+    container_name: lead2buy-api
+    restart: always
     ports:
-      - "11434:11434"
+      - "8080:8080"
+    # Esta seção garante que a API se conecte ao banco usando as credenciais do .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - DB_HOST=db
+      - DB_PORT=5432
+      # --- CREDENCIAIS CORRIGIDAS ---
+      # A API usa essas variáveis para montar a string de conexão.
+      # Elas são lidas diretamente do seu arquivo .env
+      - DB_NAME=${POSTGRES_DB}
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      # --- FIM DA CORREÇÃO ---
+      - JWT_KEY=${JWT_KEY}
+      - JWT_ISSUER=${JWT_ISSUER}
+      - JWT_AUDIENCE=${JWT_AUDIENCE}
+    depends_on:
+      - db
+    networks:
+      - lead2buy-network
+
+  lead2buy-frontend:
+    build:
+      context: ./lead2buy-frontend
+      dockerfile: Dockerfile
+    container_name: lead2buy-frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    networks:
+      - lead2buy-network
+
+  nginx:
+    image: nginx:latest
+    container_name: lead2buy-nginx
+    restart: always
+    ports:
+      - "80:80"
     volumes:
-      - ollama_data:/root/.ollama
-    restart: unless-stopped
+      - ./deployment/nginx/lead2buy-api.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - lead2buy-api
+      - lead2buy-frontend
     networks:
-      - lead2buy-net
-  
-  redis:
-    image: "redis:alpine"
-    container_name: lead2buy_redis
-    restart: unless-stopped
-    networks:
-      - lead2buy-net
+      - lead2buy-network
+
+networks:
+  lead2buy-network:
+    driver: bridge
 
 volumes:
   postgres_data:
-  ollama_data:
-
-networks:
-  lead2buy-net:
-    driver: bridge
