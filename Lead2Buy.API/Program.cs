@@ -101,8 +101,8 @@ var app = builder.Build();
  app.UseSwaggerUI(c =>
  {
      c.SwaggerEndpoint("/swagger/v1/swagger.json", "Lead2Buy API V1");
-     // Move a UI do Swagger para /swagger, liberando a raiz do site.
-     c.RoutePrefix = "swagger"; 
+     // Faz a documentação da API ser a página principal do seu domínio de backend.
+     c.RoutePrefix = string.Empty; 
  });
 
 
@@ -113,7 +113,7 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");
 
-// --- Lógica de Migração (sem abreviação) ---
+// --- Lógica de Migração (Completa) ---
 #region Database Migration
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
 var maxRetries = 5;
