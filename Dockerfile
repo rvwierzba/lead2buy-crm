@@ -1,25 +1,35 @@
-# Estágio de Build: usa o SDK completo do .NET para compilar a aplicação
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
+# Estágio 1: Construir o Frontend (Vue.js)
+FROM node:20-alpine AS frontend-builder
 
-# Copia o arquivo de projeto e restaura as dependências (otimiza o cache do Docker)
-COPY ["Lead2Buy.API.csproj", "."]
-RUN dotnet restore "Lead2Buy.API.csproj"
-
-# Copia o resto dos arquivos do projeto e compila
-COPY . .
-WORKDIR "/src/."
-RUN dotnet build "Lead2Buy.API.csproj" -c Release -o /app/build
-
-# Estágio de Publicação: cria a versão final otimizada da aplicação
-FROM build AS publish
-RUN dotnet publish "Lead2Buy.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
-
-# Estágio Final: usa uma imagem leve do .NET apenas com o necessário para rodar
-# --- ALTERAÇÃO CRÍTICA AQUI ---
-# A imagem base foi corrigida de 'nginx:alpine' para 'aspnet:8.0'
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
-# --- FIM DA ALTERAÇÃO ---
+# Define o diretório de trabalho dentro do contêiner
 WORKDIR /app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Lead2Buy.API.dll"]
+
+# Copia os arquivos de definição de pacotes do frontend
+COPY lead2buy-frontend/package*.json ./
+
+# Instala as dependências do frontend
+RUN npm install
+
+# Copia todo o código-fonte do frontend
+COPY lead2buy-frontend/ .
+
+# Executa o build de produção do frontend
+RUN npm run build
+
+# Estágio 2: Preparar o Servidor Web (Nginx)
+FROM nginx:alpine
+
+# Remove a configuração padrão do Nginx
+RUN rm /etc/nginx/conf.d/default.conf
+
+# Copia a nossa configuração customizada do Nginx
+COPY deployment/nginx/lead2buy-api.conf /etc/nginx/conf.d/default.conf
+
+# Copia os arquivos do frontend (que foram construídos no estágio anterior) para a pasta que o Nginx serve
+COPY --from=frontend-builder /app/dist /usr/share/nginx/html
+
+# Expõe as portas 80 (HTTP) e 443 (HTTPS)
+EXPOSE 80 443
+
+# Comando para iniciar o Nginx
+CMD ["nginx", "-g", "daemon off;"]

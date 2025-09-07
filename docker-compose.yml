@@ -68,24 +68,18 @@ services:
       - lead2buy-network
 
   nginx:
-    image: nginx:latest
+    # O Nginx agora é construído a partir do Dockerfile na raiz
+    build: .
     container_name: lead2buy-nginx
     restart: always
     ports:
-      # --- CORREÇÃO AQUI ---
       - "80:80"
-      - "443:443" # <-- Adiciona a porta HTTPS
-      # --- FIM DA CORREÇÃO ---
+      - "443:443"
     volumes:
-      - ./deployment/nginx/lead2buy-api.conf:/etc/nginx/conf.d/default.conf
-      # --- ADICIONA VOLUMES PARA O SSL ---
       - /etc/letsencrypt:/etc/letsencrypt
       - /var/www/html:/var/www/html
-      # --- FIM DA ADIÇÃO ---
     depends_on:
       - lead2buy-api
-    networks:
-      - lead2buy-network
 
 networks:
   lead2buy-network:
