@@ -1,12 +1,11 @@
-using System.Security.Claims;
-using System.Text.Json;
-using Lead2Buy.API.Data;
-using Lead2Buy.API.Dtos.Chatbot;
-using Lead2Buy.API.Models;
+using Lead2Buy.API.Dtos.Chatbot; 
+using Lead2Buy.API.Hubs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using StackExchange.Redis; 
+using Microsoft.AspNetCore.SignalR;
+using StackExchange.Redis;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Lead2Buy.API.Controllers
 {
@@ -16,113 +15,111 @@ namespace Lead2Buy.API.Controllers
     public class ChatbotController : ControllerBase
     {
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly AppDbContext _context;
-        private readonly ILogger<ChatbotController> _logger;
-        private readonly IConnectionMultiplexer _redis; // 2. Injetando o Redis
+        private readonly IConnectionMultiplexer _redis;
+        private readonly IHubContext<NotificationHub> _hubContext;
+        private readonly string _ollamaUrl;
 
-        public ChatbotController(
-            IHttpClientFactory httpClientFactory, 
-            AppDbContext context, 
-            ILogger<ChatbotController> logger, 
-            IConnectionMultiplexer redis) // 3. Recebendo no construtor
+        public ChatbotController(IHttpClientFactory httpClientFactory, IConnectionMultiplexer redis, IHubContext<NotificationHub> hubContext, IConfiguration configuration)
         {
             _httpClientFactory = httpClientFactory;
-            _context = context;
-            _logger = logger;
-            _redis = redis; // 4. Atribuindo
+            _redis = redis;
+            _hubContext = hubContext;
+            _ollamaUrl = configuration["OLLAMA_URL"] ?? "http://localhost:11434";
         }
-        
-        // O método de conversa simples (sem anexo) continua o mesmo
+
         [HttpPost("converse")]
-        public async Task<IActionResult> Converse(ChatRequestDto request)
+        public async Task<IActionResult> Converse([FromBody] ChatRequestDto request)
         {
-            // ... (Este método não precisa de alteração)
-            var httpClient = _httpClientFactory.CreateClient("OllamaClient");
+            if (request == null || string.IsNullOrWhiteSpace(request.Prompt))
+            {
+                return BadRequest("O prompt não pode ser vazio.");
+            }
+
+            // --- CORREÇÃO PRINCIPAL AQUI ---
+            // O OllamaRequestDto espera uma lista de mensagens, não um prompt direto.
             var ollamaRequest = new OllamaRequestDto
             {
-                Messages = new List<OllamaMessageDto> { new OllamaMessageDto { Content = request.Prompt } }
+                Model = "phi4-mini:q4_0",
+                Stream = false,
+                Messages = new List<OllamaMessageDto>
+                {
+                    new OllamaMessageDto { Role = "user", Content = request.Prompt }
+                }
             };
-            var ollamaUrl = "http://ollama:11434/api/chat";
-            try
+            // --- FIM DA CORREÇÃO ---
+
+            var client = _httpClientFactory.CreateClient("OllamaClient");
+            var response = await client.PostAsJsonAsync($"{_ollamaUrl}/api/chat", ollamaRequest); // Endpoint corrigido para /api/chat
+
+            if (response.IsSuccessStatusCode)
             {
-                var response = await httpClient.PostAsJsonAsync(ollamaUrl, ollamaRequest);
-                if (response.IsSuccessStatusCode)
-                {
-                    var ollamaResponse = await response.Content.ReadFromJsonAsync<JsonElement>();
-                    var messageContent = ollamaResponse.GetProperty("message").GetProperty("content").GetString();
-                    return Ok(new { response = messageContent });
-                }
-                else
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    return StatusCode((int)response.StatusCode, $"Erro na comunicação com a IA: {errorContent}");
-                }
+                var ollamaResponse = await response.Content.ReadFromJsonAsync<OllamaResponseDto>();
+                return Ok(ollamaResponse);
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Erro interno: {ex.Message}");
-            }
+
+            var errorContent = await response.Content.ReadAsStringAsync();
+            return StatusCode((int)response.StatusCode, $"Erro ao se comunicar com o Ollama: {errorContent}");
         }
 
-        // --- MÉTODO COM ANEXO TOTALMENTE REFATORADO ---
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpPost("converse-with-attachment")]
-        public async Task<IActionResult> ConverseWithAttachment([FromForm] string prompt, [FromForm] IFormFile file)
+        public async Task<IActionResult> ConverseWithAttachment([FromForm] ChatRequestDto request, IFormFile file)
         {
-            _logger.LogInformation("Endpoint ConverseWithAttachment iniciado para criar um novo ChatJob.");
-
             if (file == null || file.Length == 0)
             {
-                return BadRequest("Nenhum arquivo enviado.");
+                return BadRequest("Nenhum arquivo foi enviado.");
             }
-
-            // 1. Salva o arquivo em uma pasta temporária (como antes)
-            var uploadsFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "TempUploads");
+            if (request == null || string.IsNullOrWhiteSpace(request.Prompt))
+            {
+                return BadRequest("O prompt não pode ser vazio.");
+            }
+            if (string.IsNullOrWhiteSpace(request.UserId))
+            {
+                return BadRequest("UserId é obrigatório.");
+            }
+            
+            var uploadsFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
             if (!Directory.Exists(uploadsFolderPath))
             {
                 Directory.CreateDirectory(uploadsFolderPath);
             }
-            var fileName = $"{Guid.NewGuid()}_{file.FileName}";
-            var filePath = Path.Combine(uploadsFolderPath, fileName);
 
-            await using (var stream = new FileStream(filePath, FileMode.Create))
+            var filePath = Path.Combine(uploadsFolderPath, Guid.NewGuid().ToString() + Path.GetExtension(file.FileName));
+            
+            using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 await file.CopyToAsync(stream);
             }
-            _logger.LogInformation("Arquivo salvo em: {FilePath}", filePath);
-
-            // 2. Cria o registro do Job no banco de dados (como antes)
-            var userId = GetUserId();
-            var newJob = new ChatJob
+            
+            var job = new
             {
-                UserPrompt = prompt,
                 FilePath = filePath,
-                Status = JobStatus.Pending,
-                UserId = userId
+                Prompt = request.Prompt,
+                UserId = request.UserId
             };
-            _context.ChatJobs.Add(newJob);
-            await _context.SaveChangesAsync();
-            _logger.LogInformation("Novo ChatJob criado com ID: {JobId}", newJob.Id);
 
-            // 3. A GRANDE MUDANÇA: Publica o ID do Job na fila do Redis
-            var publisher = _redis.GetSubscriber();
-            await publisher.PublishAsync("ocr_jobs_channel", newJob.Id.ToString());
-            _logger.LogInformation("Job ID {JobId} publicado na fila 'ocr_jobs_channel'.", newJob.Id);
+            var db = _redis.GetDatabase();
+            await db.ListRightPushAsync("ocr-queue", JsonSerializer.Serialize(job));
 
-            // 4. Retorna a resposta imediata para o usuário
-            return Accepted(new { 
-                message = "Sua solicitação foi recebida e está na fila para processamento. Você será notificado quando estiver pronta.", 
-                jobId = newJob.Id 
-            });
+            await _hubContext.Clients.User(request.UserId).SendAsync("JobStatusUpdate", "Seu arquivo foi recebido e está na fila para processamento.");
+
+            return Ok(new { message = "Arquivo enviado e trabalho de OCR enfileirado com sucesso." });
         }
-        
-        private int GetUserId()
-        {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userIdString))
-            {
-                throw new Exception("ID do usuário não encontrado no token.");
-            }
-            return int.Parse(userIdString);
-        }
+    }
+
+    public class OllamaResponseDto
+    {
+        [JsonPropertyName("model")]
+        public string? Model { get; set; } // Propriedade tornada nullable
+
+        [JsonPropertyName("created_at")]
+        public DateTime CreatedAt { get; set; }
+
+        // A resposta de /api/chat vem dentro de um objeto 'message'
+        [JsonPropertyName("message")]
+        public OllamaMessageDto? Message { get; set; }
+
+        [JsonPropertyName("done")]
+        public bool Done { get; set; }
     }
 }

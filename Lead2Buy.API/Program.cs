@@ -28,8 +28,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-var connectionString = builder.Configuration["ConnectionStrings:DefaultConnection"];
-// Modificação para ler do .env
 var dbHost = builder.Configuration["DB_HOST"];
 var dbPort = builder.Configuration["DB_PORT"];
 var dbName = builder.Configuration["DB_NAME"];
@@ -82,6 +80,7 @@ builder.Services.AddSwaggerGen(options =>
     }});
 });
 
+// --- CORREÇÃO JWT AQUI ---
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options => {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -90,18 +89,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            ValidIssuer = builder.Configuration["JWT_ISSUER"], // <-- Lendo variável de ambiente direta
+            ValidAudience = builder.Configuration["JWT_AUDIENCE"], // <-- Lendo variável de ambiente direta
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT_KEY"])) // <-- Lendo variável de ambiente direta
         };
     });
+// --- FIM DA CORREÇÃO ---
 
 var app = builder.Build();
 
  app.UseSwagger();
  app.UseSwaggerUI(c =>
  {
-     // Acessa o Swagger na raiz do seu IP: http://191.252.192.158/
      c.SwaggerEndpoint("/swagger/v1/swagger.json", "Lead2Buy API V1");
      c.RoutePrefix = string.Empty; 
  });

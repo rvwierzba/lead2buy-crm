@@ -6,5 +6,6 @@ namespace Lead2Buy.API.Dtos.Chatbot
     {
         [Required]
         public string Prompt { get; set; } = string.Empty;
+        public string? UserId { get; set; }
     }
 }
