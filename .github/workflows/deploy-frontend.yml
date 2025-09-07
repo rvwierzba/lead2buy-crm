@@ -3,7 +3,7 @@ name: Deploy Frontend to GitHub Pages
 on:
   push:
     branches:
-      - main 
+      - main
 
 jobs:
   build-and-deploy:
@@ -16,19 +16,18 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          # --- CORREÇÃO AQUI ---
+          # Atualiza a versão do Node.js para uma compatível com o Vite
+          node-version: '20'
 
       - name: Install dependencies
-        # Garante que o npm install rode dentro da pasta do frontend
         run: npm --prefix lead2buy-frontend install
 
       - name: Build project
-        # Garante que o npm build rode dentro da pasta do frontend
         run: npm --prefix lead2buy-frontend run build
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          # Aponta para a pasta 'dist' correta dentro do subdiretório do frontend
           publish_dir: ./lead2buy-frontend/dist
