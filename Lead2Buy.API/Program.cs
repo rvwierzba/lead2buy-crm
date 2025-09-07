@@ -4,6 +4,7 @@ using Lead2Buy.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using StackExchange.Redis;
 using System.Text;
 
@@ -22,23 +23,18 @@ builder.Services.AddCors(options =>
 });
 
 var connectionString = builder.Configuration["ConnectionStrings:DefaultConnection"];
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
-// --- CORREÇÃO DEFINITIVA DO REDIS ---
-var redisConnectionString = builder.Configuration["RedisConnectionString"]; // Leitura direta da variável de ambiente
-
+var redisConnectionString = builder.Configuration["RedisConnectionString"];
 if (!string.IsNullOrEmpty(redisConnectionString))
 {
-    // Registra a conexão do Redis como um singleton
     builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConnectionString));
 }
 else
 {
-    Console.WriteLine("AVISO CRÍTICO: String de conexão do Redis não foi encontrada. O serviço de OCR não será iniciado e a aplicação pode não funcionar corretamente.");
-    // Propositalmente não registramos o serviço para evitar o crash,
-    // mas deixamos um aviso claro de que algo está errado.
+    Console.WriteLine("AVISO CRÍTICO: String de conexão do Redis não foi encontrada. O serviço de OCR não será iniciado.");
 }
+
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddHostedService<OcrProcessingService>();
 builder.Services.AddControllers().AddJsonOptions(options => {
@@ -46,31 +42,67 @@ builder.Services.AddControllers().AddJsonOptions(options => {
 });
 builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options => { /* ... Configuração do Swagger ... */ });
+
+// --- CORREÇÃO DEFINITIVA DO SWAGGER COM AUTENTICAÇÃO ---
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Lead2Buy API", Version = "v1" });
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Por favor, insira 'Bearer' seguido de um espaço e o token JWT",
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement {
+    {
+        new OpenApiSecurityScheme
+        {
+            Reference = new OpenApiReference
+            {
+                Type = ReferenceType.SecurityScheme,
+                Id = "Bearer"
+            }
+        },
+        new string[] {}
+    }});
+});
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options => { /* ... Configuração do JWT ... */ });
+    .AddJwtBearer(options => {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        };
+    });
 
 var app = builder.Build();
 
 // --- Pipeline HTTP ---
-// --- CORREÇÃO DO SWAGGER ---
-// Movido para fora do if para habilitar em produção
 app.UseSwagger();
 app.UseSwaggerUI();
 
-if (app.Environment.IsDevelopment()) 
-{ 
-    // Outras configurações de desenvolvimento podem ir aqui
+if (app.Environment.IsDevelopment())
+{
+    // Configurações de desenvolvimento
 }
 
-// app.UseHttpsRedirection(); // Comentado para funcionar atrás do reverse proxy Nginx
 app.UseCors("AllowVueApp");
+app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");
 
-// --- LÓGICA DE MIGRAÇÃO ROBUSTA COM RETENTATIVAS ---
+// --- Lógica de Migração ---
+#region Database Migration
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
 var maxRetries = 5;
 var retryDelay = TimeSpan.FromSeconds(10);
@@ -103,6 +135,7 @@ for (int i = 0; i < maxRetries; i++)
         }
     }
 }
-// --- FIM DA LÓGICA ---
+#endregion
 
 app.Run();
+
