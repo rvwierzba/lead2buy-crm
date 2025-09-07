@@ -14,8 +14,11 @@ services:
       - MailjetApiKey=49fc3e132d31ec61110c79651eb9a22b
       - MailjetApiSecret=541c19897679fd21aef0ae3ae9625e03
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=lead2buy_db;Username=postgres;Password='@RVWSecretLeadsData'
-      # AQUI ESTÁ A CORREÇÃO FINAL PARA O CRASH:
       - RedisConnectionString=redis:6379
+      # --- AQUI ESTÁ A CORREÇÃO FINAL PARA O CRASH ---
+      - Jwt__Issuer=Lead2BuyAPI
+      - Jwt__Audience=Lead2BuyUsers
+      - Jwt__Key=UMA_CHAVE_SECRETA_SUPER_LONGA_E_DIFICIL_DE_ADIVINHAR_PARA_PRODUCAO_123!@#
     depends_on:
       - db
       - ollama
