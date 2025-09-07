@@ -1,47 +1,34 @@
-# Workflow do GitHub Actions para fazer o deploy do frontend no GitHub Pages
 name: Deploy Frontend to GitHub Pages
 
 on:
   push:
     branches:
-      - master # Ou 'main', dependendo do nome da sua branch principal
-  workflow_dispatch:
-
-# Permissões para o GITHUB_TOKEN
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+      - main 
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: '20' # Use a versão do Node que preferir
+          node-version: '18'
 
-      - name: Install Dependencies
-        run: npm --prefix ./lead2buy-frontend install
+      - name: Install dependencies
+        # Garante que o npm install rode dentro da pasta do frontend
+        run: npm --prefix lead2buy-frontend install
 
-      - name: Build
-        run: npm --prefix ./lead2buy-frontend run build
-        env:
-          # Define a URL da sua API do Render para o processo de build
-          VITE_API_BASE_URL: http://191.252.192.158:5000
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: './lead2buy-frontend/dist'
+      - name: Build project
+        # Garante que o npm build rode dentro da pasta do frontend
+        run: npm --prefix lead2buy-frontend run build
 
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Aponta para a pasta 'dist' correta dentro do subdiretório do frontend
+          publish_dir: ./lead2buy-frontend/dist
