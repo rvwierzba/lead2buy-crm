@@ -10,6 +10,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// --- Serviços ---
 builder.Services.AddHttpClient("OllamaClient", client => { client.Timeout = TimeSpan.FromSeconds(300); });
 
 var corsOrigin = builder.Configuration["CORS_ORIGIN"];
@@ -80,7 +81,6 @@ builder.Services.AddSwaggerGen(options =>
     }});
 });
 
-// --- CORREÇÃO JWT AQUI ---
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options => {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -89,12 +89,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["JWT_ISSUER"], // <-- Lendo variável de ambiente direta
-            ValidAudience = builder.Configuration["JWT_AUDIENCE"], // <-- Lendo variável de ambiente direta
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT_KEY"])) // <-- Lendo variável de ambiente direta
+            ValidIssuer = builder.Configuration["JWT_ISSUER"],
+            ValidAudience = builder.Configuration["JWT_AUDIENCE"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT_KEY"]))
         };
     });
-// --- FIM DA CORREÇÃO ---
 
 var app = builder.Build();
 
@@ -102,7 +101,8 @@ var app = builder.Build();
  app.UseSwaggerUI(c =>
  {
      c.SwaggerEndpoint("/swagger/v1/swagger.json", "Lead2Buy API V1");
-     c.RoutePrefix = string.Empty; 
+     // Move a UI do Swagger para /swagger, liberando a raiz do site.
+     c.RoutePrefix = "swagger"; 
  });
 
 
@@ -113,6 +113,7 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");
 
+// --- Lógica de Migração (sem abreviação) ---
 #region Database Migration
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
 var maxRetries = 5;
