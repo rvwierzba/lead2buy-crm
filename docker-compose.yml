@@ -79,6 +79,11 @@ services:
       - /var/www/html:/var/www/html
     depends_on:
       - lead2buy-api
+    # --- A CORREÇÃO FINAL ESTÁ AQUI ---
+    # Adiciona o Nginx à mesma rede que a API.
+    networks:
+      - lead2buy-network
+    # --- FIM DA CORREÇÃO ---
 
 networks:
   lead2buy-network:
