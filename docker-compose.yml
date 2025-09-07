@@ -18,7 +18,7 @@ services:
       # --- AQUI ESTÁ A CORREÇÃO FINAL PARA O CRASH ---
       - Jwt__Issuer=Lead2BuyAPI
       - Jwt__Audience=Lead2BuyUsers
-      - Jwt__Key=UMA_CHAVE_SECRETA_SUPER_LONGA_E_DIFICIL_DE_ADIVINHAR_PARA_PRODUCAO_123!@#
+      - Jwt__Key=cd388ceee7836f3498e43fbbce45d42351dbbfb324e16ed8805c04bd8ce30f85
     depends_on:
       - db
       - ollama
