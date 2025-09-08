@@ -1,44 +1,55 @@
 import * as signalR from "@microsoft/signalr";
 import { useAuthStore } from "@/stores/authStore";
 
-const URL = "http://191.252.192.158:5000/notificationHub"; // A URL do nosso Hub
+const signalRService = {
+  connection: null,
 
-class SignalRService {
-    constructor() {
-        this.connection = null;
+  startConnection() {
+    if (this.connection && this.connection.state === signalR.HubConnectionState.Connected) {
+      console.log("A conexão SignalR já está ativa.");
+      return;
     }
 
-    startConnection() {
-        const authStore = useAuthStore();
-        const token = authStore.token;
+    const authStore = useAuthStore();
 
-        if (!token) {
-            console.log("SignalR: Nenhum token encontrado, conexão não iniciada.");
-            return;
-        }
+    // --- A CORREÇÃO FINAL ESTÁ AQUI ---
+    // Usa um caminho relativo para se conectar ao mesmo domínio (https://crm.rvwtech.com.br)
+    const hubUrl = "/notificationHub";
+    // --- FIM DA CORREÇÃO ---
 
-        this.connection = new signalR.HubConnectionBuilder()
-            .withUrl(URL, {
-                accessTokenFactory: () => token
-            })
-            .withAutomaticReconnect()
-            .build();
+    this.connection = new signalR.HubConnectionBuilder()
+      .withUrl(hubUrl, {
+        accessTokenFactory: () => authStore.token,
+      })
+      .withAutomaticReconnect()
+      .build();
 
-        this.connection.start()
-            .then(() => console.log("SignalR Conectado!"))
-            .catch(err => console.error("Erro na conexão SignalR: ", err));
+    this.connection.start()
+      .then(() => console.log("Conexão SignalR estabelecida com sucesso."))
+      .catch(err => {
+        console.error("Erro na conexão SignalR: ", err);
+        // Tenta reconectar após um atraso
+        setTimeout(() => this.startConnection(), 5000);
+      });
+
+    this.connection.onclose(async () => {
+      console.log("Conexão SignalR fechada. Tentando reconectar...");
+      await this.startConnection();
+    });
+  },
+
+  registerJobStatusUpdate(callback) {
+    if (this.connection) {
+      this.connection.on("JobStatusUpdate", callback);
     }
+  },
 
-    // Método para "ouvir" eventos do servidor
-    on(eventName, callback) {
-        this.connection?.on(eventName, callback);
+  stopConnection() {
+    if (this.connection) {
+      this.connection.stop();
+      this.connection = null;
     }
+  }
+};
 
-    // Método para parar a conexão (ex: no logout)
-    stopConnection() {
-        this.connection?.stop()
-            .then(() => console.log("SignalR Desconectado."));
-    }
-}
-
-export default new SignalRService();
+export default signalRService;
