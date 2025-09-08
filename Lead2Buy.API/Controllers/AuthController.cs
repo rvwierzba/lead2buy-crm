@@ -1,12 +1,13 @@
 using Lead2Buy.API.Data;
-using Lead2Buy.API.Dtos.User;
 using Lead2Buy.API.Models;
+using Lead2Buy.API.Dtos.User;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
-using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Lead2Buy.API.Services;
 
 namespace Lead2Buy.API.Controllers
 {
@@ -16,90 +17,73 @@ namespace Lead2Buy.API.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly IEmailService _emailService;
 
-        public AuthController(AppDbContext context, IConfiguration configuration)
+        public AuthController(AppDbContext context, IConfiguration configuration, IEmailService emailService)
         {
             _context = context;
             _configuration = configuration;
+            _emailService = emailService;
         }
 
-        [HttpPost("register")] // Rota: POST /api/auth/register
-        public async Task<IActionResult> Register(RegisterUserDto request)
+        [HttpPost("register")]
+        public async Task<IActionResult> Register(RegisterUserDto dto)
         {
-            // 1. Verifica se já existe um usuário com o mesmo email
-            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
+            if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
             {
-                return BadRequest("Um usuário com este e-mail já existe.");
+                return BadRequest("O e-mail já está em uso.");
             }
 
-            // 2. Cria o hash da senha
-            string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
-
-            // 3. Cria a nova entidade de Usuário
-            var newUser = new User
+            var user = new User
             {
-                Name = request.Name,
-                Email = request.Email,
-                PasswordHash = passwordHash
+                Name = dto.Name,
+                Email = dto.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password)
             };
 
-            // 4. Adiciona o novo usuário ao banco de dados e salva
-            _context.Users.Add(newUser);
+            _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            // 5. Retorna uma resposta de sucesso
-            return Ok("Usuário registrado com sucesso.");
+            await _emailService.SendWelcomeEmailAsync(user.Email, user.Name);
+
+            return Ok(new { message = "Usuário registrado com sucesso." });
         }
 
-        [HttpPost("login")] // Rota: POST /api/auth/login
-        public async Task<IActionResult> Login(LoginUserDto request)
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginUserDto dto)
         {
-            // 1. Procura o usuário pelo email
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
 
-            // 2. Verifica se o usuário existe e se a senha está correta
-            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
             {
-                return Unauthorized("Credenciais inválidas.");
+                return Unauthorized(new { message = "E-mail ou senha inválidos." });
             }
 
-            // 3. Se as credenciais estiverem corretas, cria o token JWT
-            string token = CreateToken(user);
-
-            // 4. Retorna o token
+            var token = GenerateJwtToken(user);
             return Ok(new { token });
         }
 
-
-        private string CreateToken(User user)
+        private string GenerateJwtToken(User user)
         {
-            var claims = new List<Claim>
+            var tokenHandler = new JwtSecurityTokenHandler();
+            // --- CORREÇÃO AQUI ---
+            // Lê as variáveis de ambiente corretas (JWT_KEY, JWT_ISSUER, etc.)
+            var key = Encoding.ASCII.GetBytes(_configuration["JWT_KEY"]);
+            var tokenDescriptor = new SecurityTokenDescriptor
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Name),
-                new Claim(ClaimTypes.Email, user.Email)
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim(ClaimTypes.Name, user.Name),
+                    new Claim(ClaimTypes.Email, user.Email)
+                }),
+                Expires = DateTime.UtcNow.AddDays(7),
+                Issuer = _configuration["JWT_ISSUER"],
+                Audience = _configuration["JWT_AUDIENCE"],
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
-
-            // CORREÇÃO AQUI: Usando _configuration para ler a chave do appsettings.json
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-                _configuration.GetSection("Jwt:Key").Value!));
-
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
-
-            // E CORREÇÃO AQUI TAMBÉM
-            var token = new JwtSecurityToken(
-                issuer: _configuration.GetSection("Jwt:Issuer").Value,
-                audience: _configuration.GetSection("Jwt:Audience").Value,
-                claims: claims,
-                expires: DateTime.Now.AddDays(1),
-                signingCredentials: creds
-            );
-
-            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
-
-            return jwt;
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
         }
-
-
     }
 }

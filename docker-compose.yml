@@ -60,6 +60,9 @@ services:
       - JWT_AUDIENCE=${JWT_AUDIENCE}
       - REDIS_CONNECTION_STRING=redis:6379
       - OLLAMA_URL=http://ollama:11434
+      - MAILJET_API_KEY=${MAILJET_API_KEY}
+      - MAILJET_SECRET_KEY=${MAILJET_SECRET_KEY}
+      - MAILJET_FROM_EMAIL=${MAILJET_FROM_EMAIL}
     depends_on:
       - db
       - redis
@@ -79,11 +82,8 @@ services:
       - /var/www/html:/var/www/html
     depends_on:
       - lead2buy-api
-    # --- A CORREÇÃO FINAL ESTÁ AQUI ---
-    # Adiciona o Nginx à mesma rede que a API.
     networks:
       - lead2buy-network
-    # --- FIM DA CORREÇÃO ---
 
 networks:
   lead2buy-network:
