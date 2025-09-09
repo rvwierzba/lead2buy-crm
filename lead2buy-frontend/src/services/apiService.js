@@ -96,5 +96,11 @@ export default {
     formData.append('file', file);
     formData.append('userId', userId);
     return apiClient.post('/api/chatbot/converse-with-attachment', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
+   getRecentContacts() {
+    return apiClient.get('/api/dashboard/recent-contacts');
+  },
+  getUpcomingTasks() {
+    return apiClient.get('/api/dashboard/upcoming-tasks');
   }
 };
