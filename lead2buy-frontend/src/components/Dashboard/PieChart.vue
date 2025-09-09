@@ -1,25 +1,67 @@
 <template>
-  <Pie :data="chartData" :options="chartOptions" />
+  <div class="chart-container">
+    <Pie v-if="chartData && chartData.labels && chartData.labels.length" :data="chartData" :options="chartOptions" />
+    <div v-else class="loading-text">Carregando dados do gráfico...</div>
+  </div>
 </template>
 
 <script setup>
-import { Pie } from 'vue-chartjs'
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
+import { ref, onMounted, computed } from 'vue';
+import { Pie } from 'vue-chartjs';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import apiService from '@/services/apiService';
+import { useTheme } from '@/composables/useTheme';
 
-// Registra os componentes necessários para o gráfico de pizza
-ChartJS.register(ArcElement, Tooltip, Legend)
+ChartJS.register(ArcElement, Tooltip, Legend);
 
-defineProps({
-  chartData: {
-    type: Object,
-    required: true
-  },
-  chartOptions: {
-    type: Object,
-    default: () => ({
-      responsive: true,
-      maintainAspectRatio: false
-    })
+const { theme } = useTheme();
+const rawData = ref([]);
+const loading = ref(true);
+const error = ref(null);
+
+const chartData = computed(() => ({
+  labels: rawData.value.map(d => d.source),
+  datasets: [
+    {
+      backgroundColor: ['#42A5F5', '#66BB6A', '#FFA726', '#26A69A', '#AB47BC'],
+      data: rawData.value.map(d => d.count),
+    },
+  ],
+}));
+
+const chartOptions = computed(() => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: 'top',
+      labels: { color: theme.value === 'dark' ? '#cbd5e1' : '#64748b' }
+    }
+  }
+}));
+
+onMounted(async () => {
+  try {
+    const response = await apiService.getPerformanceBySource();
+    rawData.value = response.data;
+  } catch (err) {
+    console.error(err);
+    error.value = "Falha ao carregar dados";
+  } finally {
+    loading.value = false;
   }
 });
 </script>
+
+<style scoped>
+.chart-container {
+  position: relative;
+  height: 300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.loading-text {
+  color: var(--color-text-mute);
+}
+</style>

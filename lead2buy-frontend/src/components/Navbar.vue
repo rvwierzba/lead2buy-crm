@@ -46,140 +46,58 @@ import { ChartBarIcon, UserGroupIcon, FunnelIcon, UsersIcon } from '@heroicons/v
 
 const { theme, toggleTheme } = useTheme();
 const authStore = useAuthStore();
-
-const handleLogout = () => {
-  authStore.logout();
-};
+const handleLogout = () => { authStore.logout(); };
 </script>
 
 <style scoped>
 .navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 2rem;
-  height: 60px;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0 2rem; height: 60px;
   background-color: var(--color-background-soft);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   border-bottom: 1px solid var(--color-border);
-  transition: background-color 0.3s ease;
 }
-.dark .navbar {
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-.navbar-brand a {
-  display: flex;
-  align-items: center;
-}
-.navbar-logo {
-  height: 40px;
-}
-.navbar-links {
-  display: flex;
-  gap: 0.5rem;
-}
+.navbar-brand a { display: flex; align-items: center; }
+.navbar-logo { height: 40px; }
+.navbar-links { display: flex; gap: 0.5rem; }
 .nav-link {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  color: var(--color-text);
-  text-decoration: none;
-  font-weight: 500;
-  transition: all 0.2s ease;
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.5rem 1rem; border-radius: 8px;
+  color: var(--color-text); text-decoration: none;
+  font-weight: 500; transition: all 0.2s ease;
 }
-.nav-link:hover {
-  background-color: var(--color-background-mute);
-}
-/* CORREÇÃO NAVBAR: A classe padrão do Vue Router é mais específica e robusta */
+.nav-link:hover { background-color: var(--color-background-mute); }
+/* CORREÇÃO NAVBAR: Usa a classe padrão do Vue Router, que é mais confiável */
 .router-link-exact-active {
   background-color: var(--primary-color);
   color: white !important;
 }
-.router-link-exact-active svg {
-  color: white !important;
-}
-.dark .router-link-exact-active {
-  color: var(--color-heading) !important;
-}
-.dark .router-link-exact-active svg {
-  color: var(--color-heading) !important;
-}
-.navbar-menu {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
+.router-link-exact-active svg { color: white !important; }
+.dark .router-link-exact-active { color: var(--color-heading) !important; }
+.dark .router-link-exact-active svg { color: var(--color-heading) !important; }
+.navbar-menu { display: flex; align-items: center; gap: 1rem; }
 .logout-btn {
-  background: none;
-  border: 1px solid var(--color-border);
-  padding: 8px 15px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  color: var(--color-text);
-  font-weight: 500;
+  background: none; border: 1px solid var(--color-border);
+  padding: 8px 15px; border-radius: 8px; cursor: pointer;
+  transition: all 0.2s ease-in-out; color: var(--color-text); font-weight: 500;
 }
 .logout-btn:hover {
   background-color: var(--color-background-mute);
   border-color: var(--color-border-hover);
 }
-.theme-switcher-container {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.icon {
-  width: 20px;
-  height: 20px;
-  color: var(--color-text-mute);
-  transition: color 0.3s ease;
-}
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 50px;
-  height: 26px;
-}
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
+.theme-switcher-container { display: flex; align-items: center; gap: 0.75rem; }
+.icon { width: 20px; height: 20px; color: var(--color-text-mute); }
+.switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+.switch input { opacity: 0; width: 0; height: 0; }
 .slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: .4s;
+  position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc; transition: .4s;
 }
 .slider:before {
-  position: absolute;
-  content: "";
-  height: 18px;
-  width: 18px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  transition: .4s;
+  position: absolute; content: ""; height: 18px; width: 18px;
+  left: 4px; bottom: 4px; background-color: white; transition: .4s;
 }
-input:checked + .slider {
-  background-color: var(--primary-color);
-}
-input:focus + .slider {
-  box-shadow: 0 0 1px var(--primary-color);
-}
-input:checked + .slider:before {
-  transform: translateX(24px);
-}
-.slider.round {
-  border-radius: 34px;
-}
-.slider.round:before {
-  border-radius: 50%;
-}
+input:checked + .slider { background-color: var(--primary-color); }
+input:checked + .slider:before { transform: translateX(24px); }
+.slider.round { border-radius: 34px; }
+.slider.round:before { border-radius: 50%; }
 </style>
