@@ -6,7 +6,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { Line } from 'vue-chartjs';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import apiService from '@/services/apiService';
@@ -16,22 +16,7 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 
 const { theme } = useTheme();
 const rawData = ref([]);
-const loading = ref(true);
-const error = ref(null);
-
-const chartData = computed(() => ({
-  labels: rawData.value.map(d => d.date),
-  datasets: [
-    {
-      label: 'Novos Leads',
-      backgroundColor: 'rgba(59, 130, 246, 0.2)',
-      borderColor: 'rgba(59, 130, 246, 1)',
-      data: rawData.value.map(d => d.count),
-      fill: true,
-      tension: 0.4,
-    },
-  ],
-}));
+const chartData = ref({ labels: [], datasets: [] });
 
 const chartOptions = computed(() => ({
   responsive: true,
@@ -43,35 +28,49 @@ const chartOptions = computed(() => ({
     },
     x: {
       ticks: { color: theme.value === 'dark' ? '#cbd5e1' : '#64748b' },
-      grid: { color: 'transparent' }
+      grid: { display: false }
     }
   },
   plugins: {
-    legend: { labels: { color: theme.value === 'dark' ? '#cbd5e1' : '#64748b' } }
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: theme.value === 'dark' ? '#334155' : '#fff',
+      titleColor: theme.value === 'dark' ? '#fff' : '#333',
+      bodyColor: theme.value === 'dark' ? '#fff' : '#333',
+    }
   }
 }));
+
+const updateChartData = () => {
+  chartData.value = {
+    labels: rawData.value.map(d => d.date),
+    datasets: [
+      {
+        label: 'Novos Leads',
+        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+        borderColor: 'rgba(59, 130, 246, 1)',
+        data: rawData.value.map(d => d.count),
+        fill: true,
+        tension: 0.4,
+      },
+    ],
+  };
+};
 
 onMounted(async () => {
   try {
     const response = await apiService.getLeadsOverTime();
     rawData.value = response.data;
+    updateChartData();
   } catch (err) {
-    console.error(err);
-    error.value = "Falha ao carregar dados";
-  } finally {
-    loading.value = false;
+    console.error("Erro ao carregar dados do gráfico de linha:", err);
   }
 });
+
+watch(theme, updateChartData);
 </script>
 
 <style scoped>
-.chart-container {
-  position: relative;
-  height: 300px;
-}
-.loading-text {
-  text-align: center;
-  color: var(--color-text-mute);
-  padding-top: 2rem;
-}
+.chart-container { position: relative; height: 300px; }
+.loading-text { text-align: center; color: var(--color-text-mute); padding-top: 2rem; }
 </style>

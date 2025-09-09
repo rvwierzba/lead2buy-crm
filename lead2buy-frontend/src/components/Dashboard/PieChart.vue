@@ -6,7 +6,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { Pie } from 'vue-chartjs';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import apiService from '@/services/apiService';
@@ -16,18 +16,7 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 
 const { theme } = useTheme();
 const rawData = ref([]);
-const loading = ref(true);
-const error = ref(null);
-
-const chartData = computed(() => ({
-  labels: rawData.value.map(d => d.source),
-  datasets: [
-    {
-      backgroundColor: ['#42A5F5', '#66BB6A', '#FFA726', '#26A69A', '#AB47BC'],
-      data: rawData.value.map(d => d.count),
-    },
-  ],
-}));
+const chartData = ref({ labels: [], datasets: [] });
 
 const chartOptions = computed(() => ({
   responsive: true,
@@ -40,28 +29,35 @@ const chartOptions = computed(() => ({
   }
 }));
 
+const updateChartData = () => {
+  chartData.value = {
+    labels: rawData.value.map(d => d.source),
+    datasets: [
+      {
+        backgroundColor: ['#42A5F5', '#66BB6A', '#FFA726', '#26A69A', '#AB47BC', '#78909C'],
+        data: rawData.value.map(d => d.count),
+      },
+    ],
+  };
+};
+
 onMounted(async () => {
   try {
     const response = await apiService.getPerformanceBySource();
     rawData.value = response.data;
+    updateChartData();
   } catch (err) {
-    console.error(err);
-    error.value = "Falha ao carregar dados";
-  } finally {
-    loading.value = false;
+    console.error("Erro ao carregar dados do gráfico de pizza:", err);
   }
 });
+
+watch(theme, updateChartData);
 </script>
 
 <style scoped>
 .chart-container {
-  position: relative;
-  height: 300px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  position: relative; height: 300px;
+  display: flex; justify-content: center; align-items: center;
 }
-.loading-text {
-  color: var(--color-text-mute);
-}
+.loading-text { color: var(--color-text-mute); }
 </style>

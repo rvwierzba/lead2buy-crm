@@ -113,7 +113,6 @@ const saveContact = async () => {
 .form-group label {
   margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem; color: var(--color-text);
 }
-/* CORREÇÃO MODAL: Estilo robusto para os campos do formulário */
 .form-group input, .form-group textarea {
   background-color: var(--color-background);
   border: 1px solid var(--color-border);
