@@ -104,7 +104,7 @@ const saveContact = async () => {
   left: 0;
   width: 100%;
   height: 100%;
-  /* Fundo mais suave e com desfoque */
+  /* CORREÇÃO MODAL: Fundo suave e com desfoque */
   background-color: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
   display: flex;
@@ -150,6 +150,7 @@ const saveContact = async () => {
   font-size: 0.875rem;
   color: var(--color-text);
 }
+/* CORREÇÃO MODAL: Estilo dos campos do formulário */
 .form-group input, .form-group textarea {
   background-color: var(--color-background);
   border: 1px solid var(--color-border);
@@ -182,17 +183,17 @@ const saveContact = async () => {
   background-color: var(--color-border-hover);
 }
 .btn-primary {
-    display: inline-flex;
-    align-items: center;
-    background-color: var(--primary-color);
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-weight: 500;
-    transition: background-color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--primary-color);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: background-color 0.2s;
 }
 .btn-primary:hover {
-    background-color: var(--primary-color-dark);
+  background-color: var(--primary-color-dark);
 }
 .btn-primary:disabled {
   opacity: 0.5;

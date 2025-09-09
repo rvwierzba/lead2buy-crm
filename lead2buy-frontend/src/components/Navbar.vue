@@ -92,19 +92,18 @@ const handleLogout = () => {
 .nav-link:hover {
   background-color: var(--color-background-mute);
 }
-.active-link {
+/* CORREÇÃO NAVBAR: A classe do Vue Router é mais específica */
+.router-link-exact-active {
   background-color: var(--primary-color);
-  color: white !important; /* Adiciona !important para garantir a prioridade */
-}
-/* Garante que o ícone dentro do link ativo também fique branco */
-.active-link svg {
   color: white !important;
 }
-.dark .active-link {
-  background-color: var(--primary-color);
+.router-link-exact-active svg {
+  color: white !important;
+}
+.dark .router-link-exact-active {
   color: var(--color-heading) !important;
 }
-.dark .active-link svg {
+.dark .router-link-exact-active svg {
   color: var(--color-heading) !important;
 }
 .navbar-menu {
