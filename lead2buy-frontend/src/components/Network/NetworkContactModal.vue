@@ -42,8 +42,8 @@
 
         <div class="modal-actions">
           <button type="button" @click="$emit('close')" class="btn-secondary">Cancelar</button>
-          <button type="submit" class="btn-primary" :disabled="isSaving">
-            {{ isSaving ? 'Salvando...' : 'Salvar Contato' }}
+          <button type="submit" class="btn-primary">
+              Salvar Contato
           </button>
         </div>
       </form>
