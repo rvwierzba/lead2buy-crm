@@ -42,8 +42,8 @@
 
         <div class="modal-actions">
           <button type="button" @click="$emit('close')" class="btn-secondary">Cancelar</button>
-          <button type="submit" class="btn-primary">
-              Salvar Contato
+          <button type="submit" class="btn-primary" :disabled="isSaving">
+            {{ isSaving ? 'Salvando...' : 'Salvar Contato' }}
           </button>
         </div>
       </form>
@@ -93,21 +93,27 @@ const saveContact = async () => {
 <style scoped>
 .modal-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background-color: rgba(0, 0, 0, 0.6); display: flex;
-  justify-content: center; align-items: center; z-index: 1000;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex; justify-content: center; align-items: center; z-index: 1000;
 }
 .modal-content {
-  background: var(--ui-bg, #fff); color: var(--text-color);
-  padding: 2rem; border-radius: 12px; width: 100%; max-width: 500px;
+  background: var(--color-background-soft);
+  color: var(--color-text);
+  padding: 2rem; border-radius: 12px; width: 100%; max-width: 600px;
+  max-height: 90vh; overflow-y: auto;
+  border: 1px solid var(--color-border);
 }
-.form-group { margin-bottom: 1rem; }
-label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
-input, select {
-  width: 100%; padding: 10px; border: 1px solid var(--ui-border, #ccc);
-  border-radius: 8px; background-color: var(--bg-color); color: var(--text-color);
+.modal-title {
+  font-size: 1.5rem; font-weight: 600; color: var(--color-heading);
+  margin-bottom: 1.5rem;
 }
-.form-actions {
-  margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 1rem;
+.form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+.form-group { display: flex; flex-direction: column; }
+.form-group.col-span-2 { grid-column: span 2 / span 2; }
+.form-group label {
+  margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem;
+  color: var(--color-text);
 }
 .form-group input, .form-group textarea {
   width: 100%; padding: 10px;
@@ -120,6 +126,9 @@ input, select {
 .form-group input:focus, .form-group textarea:focus {
   outline: none; border-color: var(--primary-color);
   box-shadow: 0 0 0 2px var(--primary-color-soft);
+}
+.modal-actions {
+  margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 1rem;
 }
 .btn-secondary, .btn-primary {
   padding: 10px 20px; border-radius: 8px;
@@ -138,5 +147,4 @@ input, select {
 }
 .btn-primary:hover { background-color: var(--primary-color-dark); }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-.error-message { color: red; margin-top: 1rem; }
 </style>
