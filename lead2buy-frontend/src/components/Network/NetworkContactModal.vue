@@ -91,51 +91,31 @@ const saveContact = async () => {
 </script>
 
 <style scoped>
-.modal-overlay {
+  .modal-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);
-  display: flex; justify-content: center; align-items: center; z-index: 1000;
+  background-color: rgba(0, 0, 0, 0.6); display: flex;
+  justify-content: center; align-items: center; z-index: 1000;
 }
 .modal-content {
-  background-color: var(--color-background-soft);
-  padding: 2rem; border-radius: 12px; width: 100%; max-width: 600px;
-  max-height: 90vh; overflow-y: auto; border: 1px solid var(--color-border);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  background: var(--ui-bg, #fff); color: var(--text-color);
+  padding: 2rem; border-radius: 12px; width: 100%; max-width: 500px;
 }
-.dark .modal-content { box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-.modal-title {
-  font-size: 1.5rem; font-weight: 600; color: var(--color-heading);
-  margin-bottom: 1.5rem;
+.form-group { margin-bottom: 1rem; }
+label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+input, select {
+  width: 100%; padding: 10px; border: 1px solid var(--ui-border, #ccc);
+  border-radius: 8px; background-color: var(--bg-color); color: var(--text-color);
 }
-.form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-.form-group { display: flex; flex-direction: column; }
-.form-group.col-span-2 { grid-column: span 2 / span 2; }
-.form-group label {
-  margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem; color: var(--color-text);
+.form-actions {
+  margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 1rem;
 }
-.form-group input, .form-group textarea {
-  background-color: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: 8px; padding: 0.75rem;
-  color: var(--color-text); transition: all 0.2s ease;
+.btn-cancel {
+  padding: 10px 20px; border: 1px solid #ccc;
+  background-color: #f8f9fa; border-radius: 8px; cursor: pointer;
 }
-.form-group input:focus, .form-group textarea:focus {
-  outline: none; border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px var(--primary-color-soft);
+.btn-submit {
+  padding: 10px 20px; border: none; background-color: var(--primary-color);
+  color: white; border-radius: 8px; cursor: pointer;
 }
-.modal-actions {
-  margin-top: 2rem; display: flex; justify-content: flex-end; gap: 0.75rem;
-}
-.btn-secondary, .btn-primary {
-  padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 500;
-  transition: all 0.2s; border: 1px solid transparent;
-}
-.btn-secondary {
-  background-color: var(--color-background-mute); color: var(--color-text);
-  border-color: var(--color-border);
-}
-.btn-secondary:hover { background-color: var(--color-border-hover); }
-.btn-primary { background-color: var(--primary-color); color: white; }
-.btn-primary:hover { background-color: var(--primary-color-dark); }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.error-message { color: red; margin-top: 1rem; }
 </style>
