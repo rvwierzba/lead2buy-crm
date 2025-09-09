@@ -41,7 +41,7 @@
         </div>
 
         <div class="modal-actions">
-          <button type="button" @click="$emit('close')" class="btn-secondary">Cancelar</button>
+          <button type="button" @click="$emit('close')" class="btn-cancel">Cancelar</button>
           <button type="submit" class="btn-primary" :disabled="isSaving">
             {{ isSaving ? 'Salvando...' : 'Salvar Contato' }}
           </button>
@@ -109,10 +109,10 @@ const saveContact = async () => {
   margin-bottom: 1.5rem;
 }
 .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-.form-group { display: flex; flex-direction: column; }
+.form-group { display: flex; flex-direction: column; margin-bottom: 1rem; }
 .form-group.col-span-2 { grid-column: span 2 / span 2; }
 .form-group label {
-  margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem;
+  margin-bottom: 0.5rem; font-weight: 600; font-size: 0.875rem;
   color: var(--color-text);
 }
 .form-group input, .form-group textarea {
