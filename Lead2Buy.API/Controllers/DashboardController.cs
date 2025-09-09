@@ -1,14 +1,16 @@
 using Lead2Buy.API.Data;
 using Lead2Buy.API.Dtos.Dashboard;
+using Lead2Buy.API.DTOs.Dashboard;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace Lead2Buy.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize] // O Dashboard também será protegido
+    [Authorize]
     public class DashboardController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -18,99 +20,113 @@ namespace Lead2Buy.API.Controllers
             _context = context;
         }
 
-        // GET: api/dashboard/statistics
         [HttpGet("statistics")]
         public async Task<IActionResult> GetStatistics()
         {
-            // 1. Contagem total de contatos (Leads, Oportunidades, etc.)
             var totalLeads = await _context.Contacts.CountAsync();
-
-            // 2. Contagem de Oportunidades
-            // Baseado nos requisitos (RF009), um lead em negociação ou com proposta é uma oportunidade.
-            // Vamos assumir que o status deles seria "Oportunidade".
+            
             var opportunities = await _context.Contacts
-                .CountAsync(c => c.Status == "Oportunidade");
-
-            // 3. Contagem de Convertidos
-            // Baseado nos requisitos (RF010), são vendas fechadas.
-            // Vamos assumir o status "Convertido".
+                .Where(c => c.Status == "Proposta Apresentada" || c.Status == "Negociação")
+                .CountAsync();
+            
             var convertedLeads = await _context.Contacts
-                .CountAsync(c => c.Status == "Convertido");
+                .Where(c => c.Status == "Convertido")
+                .CountAsync();
 
-            // 4. Cálculo da Taxa de Conversão
-            // (Convertidos / Total de Leads) * 100
-            double conversionRate = 0;
-            if (totalLeads > 0)
-            {
-                conversionRate = (double)convertedLeads / totalLeads * 100;
-            }
+            var newContactsThisMonth = await _context.Contacts
+                .Where(c => c.CreatedAt.Month == DateTime.UtcNow.Month && c.CreatedAt.Year == DateTime.UtcNow.Year)
+                .CountAsync();
+            
+            var pendingTasks = await _context.CrmTasks
+                .Where(t => !t.IsCompleted && t.DueDate.Date <= DateTime.UtcNow.Date)
+                .CountAsync();
 
-            // 5. Monta o DTO de resposta
+            double conversionRate = totalLeads > 0 ? (double)convertedLeads / totalLeads * 100 : 0;
+
             var stats = new DashboardStatsDto
             {
                 TotalLeads = totalLeads,
                 Opportunities = opportunities,
                 ConvertedLeads = convertedLeads,
-                ConversionRate = Math.Round(conversionRate, 2) // Arredonda para 2 casas decimais
+                ConversionRate = Math.Round(conversionRate, 2),
+                PendingTasks = pendingTasks,
+                NewContactsThisMonth = newContactsThisMonth
             };
 
             return Ok(stats);
         }
 
-        // --- INÍCIO DO CÓDIGO DO GRÁFICO ---
-
-        // GET: api/dashboard/leads-over-time
         [HttpGet("leads-over-time")]
         public async Task<IActionResult> GetLeadsOverTime()
         {
-            var thirtyDaysAgo = DateTime.UtcNow.AddDays(-30);
+            var sixMonthsAgo = DateTime.UtcNow.AddMonths(-6);
+            var leads = await _context.Contacts
+                .Where(c => c.CreatedAt >= sixMonthsAgo)
+                .GroupBy(c => new { c.CreatedAt.Year, c.CreatedAt.Month })
+                .Select(g => new { Month = g.Key.Month, Year = g.Key.Year, Count = g.Count() })
+                .OrderBy(g => g.Year).ThenBy(g => g.Month)
+                .ToListAsync();
 
-            // 1. A consulta agora busca os grupos de dados brutos do banco
-            var leadsData = await _context.Contacts
-                .Where(c => c.CreatedAt >= thirtyDaysAgo)
-                .GroupBy(c => c.CreatedAt.Date)
-                .Select(group => new
-                {
-                    Date = group.Key, // Mantém a data como um objeto DateTime
-                    Count = group.Count()
-                })
-                .ToListAsync(); // Executa a consulta no banco AQUI
+            var result = leads.Select(l => new LeadsOverTimeDto
+            {
+                // --- CORREÇÃO AQUI ---
+                // Agora preenche a propriedade 'Date' como você especificou.
+                Date = new DateTime(l.Year, l.Month, 1).ToString("MMM/yy", CultureInfo.InvariantCulture),
+                Count = l.Count
+            }).ToList();
 
-            // 2. A formatação da data agora acontece na memória da API, depois de buscar os dados
-            var formattedData = leadsData
-                .OrderBy(d => d.Date)
-                .Select(d => new LeadsOverTimeDto
-                {
-                    Date = d.Date.ToString("yyyy-MM-dd"), // A formatação acontece AQUI
-                    Count = d.Count
-                })
-                .ToList();
-
-            return Ok(formattedData);
+            return Ok(result);
         }
 
-        // --- FIM DO CÓDIGO DO GRÁFICO ---
+        [HttpGet("performance-by-source")]
+        public async Task<IActionResult> GetPerformanceBySource()
+        {
+            var performance = await _context.Contacts
+                .Where(c => !string.IsNullOrEmpty(c.Source))
+                .GroupBy(c => c.Source)
+                .Select(g => new PerformanceBySourceDto { Source = g.Key ?? "Desconhecida", Count = g.Count() })
+                .OrderByDescending(p => p.Count)
+                .ToListAsync();
+
+            return Ok(performance);
+        }
         
-        // --- INÍCIO DO CÓDIGO DO GRÁFICO DE PIZZA ---
+        [HttpGet("recent-contacts")]
+        public async Task<IActionResult> GetRecentContacts()
+        {
+            var recentContacts = await _context.Contacts
+                .OrderByDescending(c => c.CreatedAt)
+                .Take(5)
+                .Select(c => new RecentContactDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Email = c.Email ?? "",
+                    CreatedAt = c.CreatedAt
+                })
+                .ToListAsync();
 
-            // GET: api/dashboard/performance-by-source
-            [HttpGet("performance-by-source")]
-            public async Task<IActionResult> GetPerformanceBySource()
-            {
-                var performanceData = await _context.Contacts
-                    .Where(c => !string.IsNullOrEmpty(c.Source)) // 1. Ignora contatos sem origem definida
-                    .GroupBy(c => c.Source) // 2. Agrupa pela coluna "Source"
-                    .Select(group => new PerformanceBySourceDto
-                    {
-                        Source = group.Key, // 3. Pega o nome da origem
-                        Count = group.Count() // 4. Conta quantos contatos tem nessa origem
-                    })
-                    .OrderByDescending(dto => dto.Count) // 5. Ordena para mostrar os mais relevantes primeiro
-                    .ToListAsync();
+            return Ok(recentContacts);
+        }
 
-                return Ok(performanceData);
-            }
+        [HttpGet("upcoming-tasks")]
+        public async Task<IActionResult> GetUpcomingTasks()
+        {
+            var upcomingTasks = await _context.CrmTasks
+                .Include(t => t.Contact)
+                .Where(t => !t.IsCompleted)
+                .OrderBy(t => t.DueDate)
+                .Take(5)
+                .Select(t => new UpcomingTaskDto
+                {
+                    Id = t.Id,
+                    Title = t.Title,
+                    DueDate = t.DueDate,
+                    ContactName = t.Contact.Name
+                })
+                .ToListAsync();
 
-        // --- FIM DO CÓDIGO DO GRÁFICO DE PIZZA ---
+            return Ok(upcomingTasks);
+        }
     }
 }

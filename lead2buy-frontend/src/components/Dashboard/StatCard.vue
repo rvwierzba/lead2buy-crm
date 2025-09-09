@@ -1,7 +1,7 @@
 <template>
   <div class="stat-card">
     <div class="flex items-center">
-      <div class="bg-blue-100 dark:bg-blue-900/50 p-3 rounded-full mr-4">
+      <div class="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-blue-100 dark:bg-blue-900/50 rounded-full mr-4">
         <component :is="icon" class="h-6 w-6 text-blue-500 dark:text-blue-400" />
       </div>
       <div>
