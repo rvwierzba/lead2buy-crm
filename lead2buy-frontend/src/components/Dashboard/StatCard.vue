@@ -2,7 +2,7 @@
   <div class="stat-card">
     <div class="flex items-center">
       <div class="icon-container">
-        <component :is="icon" class="text-blue-500 dark:text-blue-400" />
+        <component :is="icon" class="stat-icon" />
       </div>
       <div>
         <p class="card-title">{{ title }}</p>
@@ -44,8 +44,6 @@ defineProps({
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* --- CORREÇÃO FINAL AQUI --- */
-
 .icon-container {
   display: flex;
   align-items: center;
@@ -53,21 +51,31 @@ defineProps({
   flex-shrink: 0;
   width: 3rem;  /* 48px */
   height: 3rem; /* 48px */
-  background-color: rgb(219 234 254 / 1); /* bg-blue-100 */
   border-radius: 9999px;
   margin-right: 1rem;
+  /* Cor para o modo claro */
+  background-color: #dbeafe; /* Azul claro, tailwind blue-100 */
+  transition: background-color 0.3s ease;
 }
 
+/* --- CORREÇÃO DARK MODE AQUI --- */
 .dark .icon-container {
-  background-color: rgb(30 58 138 / 0.5); /* dark:bg-blue-900/50 */
+  /* Cor de fundo mais suave para o modo escuro */
+  background-color: rgba(30, 64, 175, 0.4); /* Azul escuro com transparência */
 }
 
-/* Força o tamanho do ícone SVG dentro do contêiner */
-.icon-container :deep(svg) {
+.stat-icon {
   width: 1.5rem;  /* 24px */
   height: 1.5rem; /* 24px */
+  /* Cor do ícone para o modo claro */
+  color: #3b82f6; /* Azul, tailwind blue-500 */
+  transition: color 0.3s ease;
 }
 
+.dark .stat-icon {
+  /* Cor do ícone para o modo escuro */
+  color: #93c5fd; /* Azul mais claro para contraste, tailwind blue-300 */
+}
 /* --- FIM DA CORREÇÃO --- */
 
 .card-title {
