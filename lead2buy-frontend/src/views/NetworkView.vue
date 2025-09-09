@@ -69,7 +69,6 @@
 </template>
 
 <script setup>
-// ... (script sem alterações)
 import { ref, onMounted } from 'vue';
 import apiService from '@/services/apiService';
 import NetworkContactModal from '@/components/Network/NetworkContactModal.vue';
@@ -80,8 +79,12 @@ import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/outline';
 const contacts = ref([]);
 const loading = ref(true);
 const error = ref(null);
+
 const isModalOpen = ref(false);
 const selectedContact = ref(null);
+
+// --- CORREÇÃO AQUI ---
+// Inicializa a variável como 'false' e cria a lógica para controle
 const isConfirmModalOpen = ref(false);
 const contactToDelete = ref(null);
 
@@ -97,30 +100,37 @@ const fetchContacts = async () => {
     loading.value = false;
   }
 };
+
 onMounted(fetchContacts);
+
 const openModal = (contact = null) => {
   selectedContact.value = contact;
   isModalOpen.value = true;
 };
+
 const closeModal = () => {
   isModalOpen.value = false;
   selectedContact.value = null;
 };
+
 const confirmDelete = (contact) => {
   contactToDelete.value = contact;
   isConfirmModalOpen.value = true;
 };
+
 const closeConfirmModal = () => {
   isConfirmModalOpen.value = false;
   contactToDelete.value = null;
 };
+
 const deleteContact = async () => {
   if (!contactToDelete.value) return;
   try {
     await apiService.deleteNetworkContact(contactToDelete.value.id);
-    await fetchContacts();
+    await fetchContacts(); // Recarrega a lista
   } catch (err) {
     console.error("Erro ao excluir contato:", err);
+    // Adicionar notificação de erro para o usuário
   } finally {
     closeConfirmModal();
   }
