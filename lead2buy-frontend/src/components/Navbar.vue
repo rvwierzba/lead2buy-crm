@@ -7,19 +7,19 @@
     </div>
 
     <div class="navbar-links">
-      <router-link to="/" class="nav-link" active-class="active-link">
+      <router-link to="/" class="nav-link">
         <ChartBarIcon class="h-5 w-5" />
         <span>Dashboard</span>
       </router-link>
-      <router-link to="/contacts" class="nav-link" active-class="active-link">
+      <router-link to="/contacts" class="nav-link">
         <UserGroupIcon class="h-5 w-5" />
         <span>Contatos</span>
       </router-link>
-      <router-link to="/funil" class="nav-link" active-class="active-link">
+      <router-link to="/funil" class="nav-link">
         <FunnelIcon class="h-5 w-5" />
         <span>Funil</span>
       </router-link>
-      <router-link to="/network" class="nav-link" active-class="active-link">
+      <router-link to="/network" class="nav-link">
         <UsersIcon class="h-5 w-5" />
         <span>Network</span>
       </router-link>
@@ -28,7 +28,7 @@
     <div class="navbar-menu">
       <div class="theme-switcher-container">
         <svg v-if="theme === 'light'" class="icon sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.106a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5h2.25a.75.75 0 01.75.75zM17.836 17.836a.75.75 0 00-1.061-1.06l-1.59 1.591a.75.75 0 101.06 1.06l1.59-1.591zM12 18.75a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0v-2.25a.75.75 0 01.75-.75zM4.164 17.836a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM3 12a.75.75 0 01-.75.75H.75a.75.75 0 010-1.5h2.25A.75.75 0 013 12zM6.106 6.106a.75.75 0 001.061-1.06l-1.591-1.59a.75.75 0 00-1.06 1.061l1.591 1.59z"></path></svg>
-        <svg v-else class="icon moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-3.833 2.067-7.171 5.144-8.972a.75.75 0 01.818.162z" clip-rule="evenodd"></path></svg>
+        <svg velse class="icon moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-3.833 2.067-7.171 5.144-8.972a.75.75 0 01.818.162z" clip-rule="evenodd"></path></svg>
         <label class="switch">
           <input type="checkbox" @change="toggleTheme" :checked="theme === 'dark'">
           <span class="slider round"></span>
@@ -92,7 +92,7 @@ const handleLogout = () => {
 .nav-link:hover {
   background-color: var(--color-background-mute);
 }
-/* CORREÇÃO NAVBAR: A classe do Vue Router é mais específica */
+/* CORREÇÃO NAVBAR: A classe padrão do Vue Router é mais específica e robusta */
 .router-link-exact-active {
   background-color: var(--primary-color);
   color: white !important;
