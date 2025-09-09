@@ -109,13 +109,34 @@ input, select {
 .form-actions {
   margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 1rem;
 }
-.btn-cancel {
-  padding: 10px 20px; border: 1px solid #ccc;
-  background-color: #f8f9fa; border-radius: 8px; cursor: pointer;
+.form-group input, .form-group textarea {
+  width: 100%; padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  transition: all 0.2s ease;
 }
-.btn-submit {
-  padding: 10px 20px; border: none; background-color: var(--primary-color);
-  color: white; border-radius: 8px; cursor: pointer;
+.form-group input:focus, .form-group textarea:focus {
+  outline: none; border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--primary-color-soft);
 }
+.btn-secondary, .btn-primary {
+  padding: 10px 20px; border-radius: 8px;
+  cursor: pointer; font-weight: 500;
+  border: 1px solid transparent;
+}
+.btn-secondary {
+  border-color: var(--color-border);
+  background-color: transparent;
+  color: var(--color-text);
+}
+.btn-secondary:hover { background-color: var(--color-background-mute); }
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+.btn-primary:hover { background-color: var(--primary-color-dark); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 .error-message { color: red; margin-top: 1rem; }
 </style>
