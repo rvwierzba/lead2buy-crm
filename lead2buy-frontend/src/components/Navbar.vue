@@ -42,10 +42,7 @@
 <script setup>
 import { useTheme } from '../composables/useTheme';
 import { useAuthStore } from '../stores/authStore';
-// --- CORREÇÃO E MELHORIA AQUI ---
-// Importa todos os ícones que estamos usando no menu
 import { ChartBarIcon, UserGroupIcon, FunnelIcon, UsersIcon } from '@heroicons/vue/24/outline';
-// ------------------------------------
 
 const { theme, toggleTheme } = useTheme();
 const authStore = useAuthStore();
@@ -79,13 +76,12 @@ const handleLogout = () => {
 }
 .navbar-links {
   display: flex;
-  gap: 0.5rem; /* Reduz o gap para acomodar o padding */
+  gap: 0.5rem;
 }
-/* --- MELHORIA DE ESTILO AQUI --- */
 .nav-link {
   display: flex;
   align-items: center;
-  gap: 0.5rem; /* Espaço entre o ícone e o texto */
+  gap: 0.5rem;
   padding: 0.5rem 1rem;
   border-radius: 8px;
   color: var(--color-text);
@@ -98,13 +94,19 @@ const handleLogout = () => {
 }
 .active-link {
   background-color: var(--primary-color);
-  color: white;
+  color: white !important; /* Adiciona !important para garantir a prioridade */
+}
+/* Garante que o ícone dentro do link ativo também fique branco */
+.active-link svg {
+  color: white !important;
 }
 .dark .active-link {
-  background-color: var(--primary-color); /* Mantém a cor primária para o link ativo no modo escuro */
-  color: var(--color-heading);
+  background-color: var(--primary-color);
+  color: var(--color-heading) !important;
 }
-/* ------------------------------- */
+.dark .active-link svg {
+  color: var(--color-heading) !important;
+}
 .navbar-menu {
   display: flex;
   align-items: center;
