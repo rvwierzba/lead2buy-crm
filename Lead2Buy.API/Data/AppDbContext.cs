@@ -13,6 +13,7 @@ namespace Lead2Buy.API.Data
         public DbSet<Contact> Contacts { get; set; }
         public DbSet<Interaction> Interactions { get; set; }
         public DbSet<CrmTask> CrmTasks { get; set; }
-         public DbSet<ChatJob> ChatJobs { get; set; }
+        public DbSet<ChatJob> ChatJobs { get; set; }
+        public DbSet<NetworkContact> NetworkContacts { get; set; }
     }
 }

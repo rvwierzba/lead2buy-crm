@@ -102,5 +102,18 @@ export default {
   },
   getUpcomingTasks() {
     return apiClient.get('/api/dashboard/upcoming-tasks');
+  },
+  // --- Métodos para Network ---
+  getNetworkContacts() {
+    return apiClient.get('/api/network');
+  },
+  createNetworkContact(contactData) {
+    return apiClient.post('/api/network', contactData);
+  },
+  updateNetworkContact(id, contactData) {
+    return apiClient.put(`/api/network/${id}`, contactData);
+  },
+  deleteNetworkContact(id) {
+    return apiClient.delete(`/api/network/${id}`);
   }
 };

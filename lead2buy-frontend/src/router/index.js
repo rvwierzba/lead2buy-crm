@@ -44,7 +44,13 @@ const router = createRouter({
       name: 'funil',
       component: FunilView,
       meta: { requiresAuth: true }
-    }
+    },
+    {
+      path: '/network',
+      name: 'network',
+      component: () => import('../views/NetworkView.vue'),
+      meta: { requiresAuth: true }
+    },
   ]
 })
 
