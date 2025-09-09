@@ -1,8 +1,8 @@
 <template>
   <div class="stat-card">
     <div class="flex items-center">
-      <div class="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-blue-100 dark:bg-blue-900/50 rounded-full mr-4">
-        <component :is="icon" class="h-6 w-6 text-blue-500 dark:text-blue-400" />
+      <div class="icon-container">
+        <component :is="icon" class="text-blue-500 dark:text-blue-400" />
       </div>
       <div>
         <p class="card-title">{{ title }}</p>
@@ -43,6 +43,33 @@ defineProps({
 .dark .stat-card {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
+
+/* --- CORREÇÃO FINAL AQUI --- */
+
+.icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 3rem;  /* 48px */
+  height: 3rem; /* 48px */
+  background-color: rgb(219 234 254 / 1); /* bg-blue-100 */
+  border-radius: 9999px;
+  margin-right: 1rem;
+}
+
+.dark .icon-container {
+  background-color: rgb(30 58 138 / 0.5); /* dark:bg-blue-900/50 */
+}
+
+/* Força o tamanho do ícone SVG dentro do contêiner */
+.icon-container :deep(svg) {
+  width: 1.5rem;  /* 24px */
+  height: 1.5rem; /* 24px */
+}
+
+/* --- FIM DA CORREÇÃO --- */
+
 .card-title {
   font-size: 14px;
   color: var(--color-text-mute);
