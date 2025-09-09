@@ -1,6 +1,6 @@
 <template>
   <div class="chart-container">
-    <Line v-if="chartData && chartData.labels && chartData.labels.length" :data="chartData" :options="chartOptions" />
+    <Line v-if="chartData.labels && chartData.labels.length" :data="chartData" :options="chartOptions" />
     <div v-else class="loading-text">Carregando dados do gráfico...</div>
   </div>
 </template>
