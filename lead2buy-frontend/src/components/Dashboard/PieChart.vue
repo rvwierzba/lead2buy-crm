@@ -1,6 +1,6 @@
 <template>
   <div class="chart-container">
-    <Pie v-if="chartData && chartData.labels && chartData.labels.length" :data="chartData" :options="chartOptions" />
+    <Pie v-if="chartData.labels && chartData.labels.length" :data="chartData" :options="chartOptions" />
     <div v-else class="loading-text">Carregando dados do gráfico...</div>
   </div>
 </template>

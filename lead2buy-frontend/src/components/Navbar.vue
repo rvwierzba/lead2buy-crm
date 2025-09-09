@@ -66,6 +66,7 @@ const handleLogout = () => { authStore.logout(); };
   font-weight: 500; transition: all 0.2s ease;
 }
 .nav-link:hover { background-color: var(--color-background-mute); }
+/* CORREÇÃO NAVBAR: Usa a classe padrão do Vue Router, que é mais confiável */
 .router-link-exact-active {
   background-color: var(--primary-color);
   color: white !important;
