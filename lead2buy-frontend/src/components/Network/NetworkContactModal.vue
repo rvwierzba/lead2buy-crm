@@ -120,60 +120,164 @@ const saveContact = async () => {
 </script>
 
 <style scoped>
+/* Estilo para a sobreposição do modal */
 .modal-overlay {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-background-modal-overlay); /* Usa variável para a sobreposição */
   backdrop-filter: blur(4px);
-  display: flex; justify-content: center; align-items: center; z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
+
+/* Estilo para o conteúdo do modal */
 .modal-content {
-  background: var(--color-background-soft);
-  color: var(--color-text);
-  padding: 2rem; border-radius: 12px; width: 100%; max-width: 600px;
-  max-height: 90vh; overflow-y: auto;
-  border: 1px solid var(--color-border);
+  background: var(--color-background-soft); /* Fundo do modal */
+  color: var(--color-text); /* Cor do texto padrão */
+  padding: 2rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1px solid var(--color-border); /* Borda do modal */
+  box-shadow: var(--shadow-modal); /* Sombra para destaque do modal */
 }
+
+/* Estilo para o título do modal */
 .modal-title {
-  font-size: 1.5rem; font-weight: 600; color: var(--color-heading);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-heading); /* Cor do título */
   margin-bottom: 1.5rem;
+  text-align: center; /* Centraliza o título */
 }
-.form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-.form-group { display: flex; flex-direction: column; margin-bottom: 1rem; }
-.form-group.col-span-2 { grid-column: span 2 / span 2; }
+
+/* Layout de grid para os campos do formulário */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+/* Ajuste para campos que ocupam duas colunas */
+.form-group.col-span-2 {
+  grid-column: span 2 / span 2;
+}
+
+/* Estilo para cada grupo de formulário (label + input) */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0; /* Remove margin-bottom individual, o gap do grid já gerencia */
+}
+
+/* Estilo para os rótulos dos campos */
 .form-group label {
-  margin-bottom: 0.5rem; font-weight: 600; font-size: 0.875rem;
-  color: var(--color-text);
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--color-text-light); /* Cor do label, um pouco mais suave */
 }
-.form-group input, .form-group textarea {
-  width: 100%; padding: 10px;
-  border: 1px solid var(--color-border);
+
+/* Estilo para os campos de input e textarea */
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--color-border-input); /* Borda do input mais clara/escura */
   border-radius: 8px;
-  background-color: var(--color-background);
-  color: var(--color-text);
+  background-color: var(--color-background-input); /* Fundo do input */
+  color: var(--color-text); /* Cor do texto digitado */
   transition: all 0.2s ease;
 }
-.form-group input:focus, .form-group textarea:focus {
-  outline: none; border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px var(--primary-color-soft);
+
+/* Estilo para campos de input e textarea quando focados */
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary-color); /* Borda primária ao focar */
+  box-shadow: 0 0 0 2px var(--primary-color-soft); /* Sombra suave ao focar */
 }
+
+/* Estilo para o grupo de anotações */
+.form-group.mt-4 {
+  margin-top: 1.5rem; /* Espaçamento superior para as anotações */
+}
+
+/* Estilo para a seção de botões de ação do modal */
 .modal-actions {
-  margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 1rem;
+  margin-top: 2rem; /* Mais espaço para os botões */
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
 }
-.btn-cancel, .btn-primary {
-  padding: 10px 20px; border-radius: 8px;
-  cursor: pointer; font-weight: 500;
+
+/* Estilo base para os botões */
+.btn-cancel,
+.btn-primary {
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
   border: 1px solid transparent;
+  transition: all 0.2s ease;
 }
+
+/* Estilo para o botão de cancelar */
 .btn-cancel {
-  border-color: var(--color-border);
-  background-color: transparent;
+  border-color: var(--color-border); /* Borda padrão */
+  background-color: var(--color-background-button-secondary); /* Fundo secundário */
   color: var(--color-text);
 }
-.btn-cancel:hover { background-color: var(--color-background-mute); }
-.btn-primary {
-  background-color: var(--primary-color);
-  color: white;
+
+.btn-cancel:hover {
+  background-color: var(--color-background-button-secondary-hover);
+  border-color: var(--color-border-hover);
 }
-.btn-primary:hover { background-color: var(--primary-color-dark); }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Estilo para o botão primário (salvar) */
+.btn-primary {
+  background-color: var(--primary-color); /* Cor primária */
+  color: white; /* Texto branco */
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-color-dark); /* Tom mais escuro da cor primária */
+}
+
+/* Estilo para botões desabilitados */
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--primary-color); /* Mantém a cor primária, mas com opacidade */
+  pointer-events: none; /* Impede eventos de mouse */
+}
+
+/* Media query para telas menores (ex: celulares) */
+@media (max-width: 640px) {
+  .modal-content {
+    max-width: 95%; /* Ocupa mais largura em telas pequenas */
+    padding: 1rem;
+  }
+  .form-grid {
+    grid-template-columns: 1fr; /* Coluna única em telas pequenas */
+  }
+  .form-group.col-span-2 {
+    grid-column: span 1 / span 1; /* Ajusta para coluna única */
+  }
+  .modal-actions {
+    flex-direction: column; /* Botões empilhados em telas pequenas */
+    gap: 0.75rem;
+  }
+  .btn-cancel, .btn-primary {
+    width: 100%; /* Botões ocupam largura total */
+  }
+}
+
 </style>
