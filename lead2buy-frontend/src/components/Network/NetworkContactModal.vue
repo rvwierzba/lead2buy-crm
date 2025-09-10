@@ -130,17 +130,17 @@ const saveContact = async () => {
 .modal-actions {
   margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 1rem;
 }
-.btn-secondary, .btn-primary {
+.btn-cancel, .btn-primary {
   padding: 10px 20px; border-radius: 8px;
   cursor: pointer; font-weight: 500;
   border: 1px solid transparent;
 }
-.btn-secondary {
+.btn-cancel {
   border-color: var(--color-border);
   background-color: transparent;
   color: var(--color-text);
 }
-.btn-secondary:hover { background-color: var(--color-background-mute); }
+.btn-cancel:hover { background-color: var(--color-background-mute); }
 .btn-primary {
   background-color: var(--primary-color);
   color: white;
