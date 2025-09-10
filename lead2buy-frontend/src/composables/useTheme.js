@@ -1,32 +1,38 @@
-import { ref, onMounted, watchEffect } from 'vue';
+import { ref, onMounted, watchEffect, computed } from 'vue';
 
 export function useTheme() {
-  // Tenta pegar o tema salvo no localStorage, ou usa 'light' como padrão
   const theme = ref(localStorage.getItem('theme') || 'light');
 
-  // Função para alternar o tema
-  function toggleTheme() {
-    theme.value = theme.value === 'light' ? 'dark' : 'light';
-  }
+  // 'isDark' agora é uma propriedade computada.
+  // Ela reage a mudanças em 'theme' e pode ser usada com v-model
+  // porque tem um 'get' (para ler o valor) e um 'set' (para alterá-lo).
+  const isDark = computed({
+    get: () => theme.value === 'dark',
+    set: (value) => {
+      theme.value = value ? 'dark' : 'light';
+    }
+  });
 
-  // 'watchEffect' é um observador que roda sempre que 'theme.value' muda
+  // Este watchEffect continua igual e vai funcionar perfeitamente.
   watchEffect(() => {
-    // Remove a classe antiga para garantir que apenas uma exista
     document.body.classList.remove('light-mode', 'dark-mode');
-    // Adiciona a classe atual ao body
     document.body.classList.add(`${theme.value}-mode`);
-    // Salva a nova preferência no localStorage
     localStorage.setItem('theme', theme.value);
   });
 
-  // Garante que o estado inicial seja aplicado quando o app carrega
   onMounted(() => {
     document.body.classList.add(`${theme.value}-mode`);
   });
 
-  // Expõe a variável 'theme' e a função 'toggleTheme' para quem usar o composable
+  // A função 'toggleTheme' é um pouco redundante agora que o v-model funciona,
+  // mas vamos mantê-la caso você precise dela em outro lugar.
+  function toggleTheme() {
+    isDark.value = !isDark.value;
+  }
+
+  // Agora exportamos 'isDark' e 'toggleTheme'
   return {
-    theme,
+    isDark,
     toggleTheme
   };
 }
