@@ -33,9 +33,9 @@
       </ul>
 
       <div class="user-actions">
-        <button @click="toggleTheme" class="theme-toggle" aria-label="Alternar tema">
+        <basic-toggle-switch  v-model="toggleTheme"  class="theme-toggle" aria-label="Alternar tema">
           <i :class="isDark ? 'fas fa-sun' : 'fas fa-moon'"></i>
-        </button>
+        </basic-toggle-switch>
         <div class="user-profile">
           <i class="fas fa-user-circle"></i>
           <button @click="logout" class="logout-button">
@@ -51,6 +51,9 @@
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
 import { useTheme } from '@/composables/useTheme';
+
+import { ref } from 'vue'
+import BasicToggleSwitch from './toggle-switch.vue'
 
 const { isDark, toggleTheme } = useTheme();
 const authStore = useAuthStore();
