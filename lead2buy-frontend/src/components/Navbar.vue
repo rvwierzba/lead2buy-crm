@@ -7,25 +7,25 @@
 
       <ul class="nav-menu">
         <li class="nav-item">
-          <router-link to="/" class="nav-link">
+          <router-link to="/" class="nav-link" exact-active-class="active">
             <i class="fas fa-tachometer-alt"></i>
             <span>Dashboard</span>
           </router-link>
         </li>
         <li class="nav-item">
-          <router-link to="/contacts" class="nav-link">
+          <router-link to="/contacts" class="nav-link" exact-active-class="active">
             <i class="fas fa-users"></i>
             <span>Contatos</span>
           </router-link>
         </li>
         <li class="nav-item">
-          <router-link to="/funil" class="nav-link">
+          <router-link to="/funil" class="nav-link" exact-active-class="active">
             <i class="fas fa-filter"></i>
             <span>Funil</span>
           </router-link>
         </li>
         <li class="nav-item">
-          <router-link to="/network" class="nav-link">
+          <router-link to="/network" class="nav-link" exact-active-class="active">
             <i class="fas fa-network-wired"></i>
             <span>Network</span>
           </router-link>
@@ -33,7 +33,7 @@
       </ul>
 
       <div class="user-actions">
-        <button @click="toggleTheme" class="theme-toggle">
+        <button @click="toggleTheme" class="theme-toggle" aria-label="Alternar tema">
           <i :class="isDark ? 'fas fa-sun' : 'fas fa-moon'"></i>
         </button>
         <div class="user-profile">
@@ -82,7 +82,6 @@ const logout = () => {
   width: 100%;
 }
 
-/* ESTILO DA LOGO (Não será afetado pelo link ativo) */
 .navbar-logo {
   display: flex;
   align-items: center;
@@ -94,7 +93,6 @@ const logout = () => {
   width: auto;
 }
 
-/* ESTILO DO MENU DE NAVEGAÇÃO */
 .nav-menu {
   display: flex;
   list-style: none;
@@ -111,7 +109,6 @@ const logout = () => {
   border-radius: 6px;
   color: var(--color-text-light);
   text-decoration: none;
-  /* O peso da fonte padrão não é negrito */
   font-weight: 500;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
@@ -121,17 +118,14 @@ const logout = () => {
   color: var(--color-text);
 }
 
-/* CORREÇÃO APLICADA AQUI! */
 /* Estilo para o link que está ativo */
-.nav-link.router-link-exact-active {
+.nav-link.active {
   color: var(--color-heading);
-  /* 1. Negrito adicionado de volta */
-  font-weight: 700;
-  /* 2. Fundo indicativo sutil mantido */
-  background-color: var(--color-background-mute);
+  font-weight: 700; /* Negrito */
+  background-color: var(--color-background-mute); /* Fundo sutil */
 }
 
-/* ESTILO DAS AÇÕES DO USUÁRIO */
+/* Ações do Usuário e Seletor de Tema */
 .user-actions {
   display: flex;
   align-items: center;
@@ -145,6 +139,7 @@ const logout = () => {
   cursor: pointer;
   font-size: 1.2rem;
   transition: color 0.2s ease;
+  padding: 5px;
 }
 
 .theme-toggle:hover {
