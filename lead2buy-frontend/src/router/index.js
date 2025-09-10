@@ -1,63 +1,61 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 
-import LoginView from '../views/LoginView.vue'
-import RegisterView from '../views/RegisterView.vue'
-import ContactsView from '../views/ContactsView.vue'
-import ContactDetailView from '../views/ContactDetailView.vue';
-import DashboardView from '../views/DashboardView.vue';
-import FunilView from '../views/FunilView.vue';
-
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-      {
-        path: '/',
-        name: 'dashboard',
-        component: DashboardView,
-        meta: { requiresAuth: true }
-      },
-      {
-        path: '/contacts',
-        name: 'contacts',
-        component: ContactsView,
-        meta: { requiresAuth: true }
-      },
-      {
-        path: '/login',
-        name: 'login',
-        component: LoginView
-      },
-      {
-        path: '/register',
-        name: 'register',
-        component: RegisterView
-      },
     {
-      path: '/contact/:id', // O ':' indica que 'id' é um parâmetro dinâmico
+      path: '/',
+      name: 'dashboard',
+      // MODIFICADO: Importação dinâmica
+      component: () => import('../views/DashboardView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/contacts',
+      name: 'contacts',
+      // MODIFICADO: Importação dinâmica
+      component: () => import('../views/ContactsView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/login',
+      name: 'login',
+      // MODIFICADO: Importação dinâmica
+      component: () => import('../views/LoginView.vue')
+    },
+    {
+      path: '/register',
+      name: 'register',
+      // MODIFICADO: Importação dinâmica
+      component: () => import('../views/RegisterView.vue')
+    },
+    {
+      path: '/contact/:id',
       name: 'contact-detail',
-      component: ContactDetailView,
+      // MODIFICADO: Importação dinâmica
+      component: () => import('../views/ContactDetailView.vue'),
       meta: { requiresAuth: true }
     },
     {
       path: '/funil',
       name: 'funil',
-      component: FunilView,
+      // MODIFICADO: Importação dinâmica
+      component: () => import('../views/FunilView.vue'),
       meta: { requiresAuth: true }
     },
     {
       path: '/network',
       name: 'network',
+      // MANTIDO: Já estava com importação dinâmica
       component: () => import('../views/NetworkView.vue'),
       meta: { requiresAuth: true }
     },
   ]
 })
 
-// Nosso "Segurança" - VERSÃO CORRIGIDA
+// Nosso "Segurança" - Nenhuma alteração necessária aqui
 router.beforeEach((to, from, next) => {
-  // A chamada para useAuthStore() foi movida para DENTRO da função.
-  // Isso garante que o Pinia já estará instalado quando este código rodar.
   const authStore = useAuthStore()
 
   if (!authStore.token) {
