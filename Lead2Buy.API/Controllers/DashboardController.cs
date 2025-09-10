@@ -41,7 +41,7 @@ namespace Lead2Buy.API.Controllers
                 .Where(t => !t.IsCompleted && t.DueDate.Date <= DateTime.UtcNow.Date)
                 .CountAsync();
 
-            double conversionRate = totalLeads > 0 ? (double)convertedLeads / totalLeads * 100 : 0;
+            double conversionRate = totalLeads > 0 ? (double)convertedLeads / opportunities * 100 : 0;
 
             var stats = new DashboardStatsDto
             {
