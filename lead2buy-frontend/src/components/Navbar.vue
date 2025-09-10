@@ -82,15 +82,15 @@ const logout = () => {
   width: 100%;
 }
 
-/* ESTILO DA LOGO */
+/* ESTILO DA LOGO (Não será afetado pelo link ativo) */
 .navbar-logo {
   display: flex;
   align-items: center;
-  padding: 5px 0; /* Adiciona um respiro para a logo não colar na borda */
+  padding: 5px 0;
 }
 
 .logo-img {
-  height: 40px; /* Ajuste a altura conforme necessário */
+  height: 40px;
   width: auto;
 }
 
@@ -100,17 +100,18 @@ const logout = () => {
   list-style: none;
   margin: 0;
   padding: 0;
-  gap: 0.5rem; /* Espaçamento entre os itens */
+  gap: 0.5rem;
 }
 
 .nav-link {
   display: flex;
   align-items: center;
-  gap: 0.5rem; /* Espaço entre ícone e texto */
+  gap: 0.5rem;
   padding: 0.75rem 1rem;
   border-radius: 6px;
   color: var(--color-text-light);
   text-decoration: none;
+  /* O peso da fonte padrão não é negrito */
   font-weight: 500;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
@@ -120,11 +121,14 @@ const logout = () => {
   color: var(--color-text);
 }
 
-/* A MÁGICA ACONTECE AQUI! */
-/* Estilo aplicado APENAS ao link ativo */
+/* CORREÇÃO APLICADA AQUI! */
+/* Estilo para o link que está ativo */
 .nav-link.router-link-exact-active {
-  background-color: var(--color-background-mute);
   color: var(--color-heading);
+  /* 1. Negrito adicionado de volta */
+  font-weight: 700;
+  /* 2. Fundo indicativo sutil mantido */
+  background-color: var(--color-background-mute);
 }
 
 /* ESTILO DAS AÇÕES DO USUÁRIO */
