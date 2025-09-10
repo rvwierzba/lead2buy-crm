@@ -120,42 +120,53 @@ const saveContact = async () => {
 </script>
 
 <style scoped>
-/* Estilo para a sobreposição do modal */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: var(--color-background-modal-overlay); /* Usa variável para a sobreposição */
-  backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.7); /* Fundo mais escuro para o overlay */
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
 }
-
-/* Estilo para o conteúdo do modal */
 .modal-content {
-  background: var(--color-background-soft); /* Fundo do modal */
-  color: var(--color-text); /* Cor do texto padrão */
+  background: var(--ui-bg); /* Usa a cor de fundo para painéis */
+  color: var(--text-color); /* Usa a cor de texto do tema */
   padding: 2rem;
   border-radius: 12px;
   width: 100%;
-  max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
-  border: 1px solid var(--color-border); /* Borda do modal */
-  box-shadow: var(--shadow-modal); /* Sombra para destaque do modal */
+  max-width: 500px;
+  border: 1px solid var(--ui-border);
 }
-
-/* Estilo para o título do modal */
-.modal-title {
-  font-size: 1.5rem;
+h3 {
+    color: var(--text-color); /* Garante que o título use a cor do tema */
+    margin-top: 0;
+}
+.form-group {
+  margin-bottom: 1rem;
+}
+label {
+  display: block;
+  margin-bottom: 0.5rem;
   font-weight: 600;
-  color: var(--color-heading); /* Cor do título */
-  margin-bottom: 1.5rem;
-  text-align: center; /* Centraliza o título */
+  color: var(--text-color);
+}
+input, select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--ui-border);
+  background-color: var(--bg-color); /* Fundo dos inputs */
+  color: var(--text-color); /* Cor do texto dos inputs */
+  border-radius: 8px;
+}
+.form-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
 }
 
 /* Layout de grid para os campos do formulário */
