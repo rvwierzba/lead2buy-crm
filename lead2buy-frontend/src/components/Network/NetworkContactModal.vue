@@ -51,69 +51,70 @@
 
 
 <script setup>
-import { ref, watchEffect, computed } from 'vue';
+import { ref, watch, computed } from 'vue';
 import apiService from '@/services/apiService';
 
 const props = defineProps({
-  isOpen: Boolean,
-  contact: Object
+  contact: {
+    type: Object,
+    default: null
+  }
 });
-
 const emit = defineEmits(['close', 'saved']);
 
-const form = ref({});
-const isSaving = ref(false);
-const isEditing = computed(() => props.contact && props.contact.id);
-
-// watchEffect reage às dependências dentro dele (props.contact).
-// Ele executa imediatamente e sempre que o 'props.contact' mudar.
-watchEffect(() => {
-  // Preenche o formulário com os dados do contato ou com strings vazias
-  form.value = {
-    name: props.contact?.name || '',
-    email: props.contact?.email || '',
-    phoneNumber: props.contact?.phoneNumber || '',
-    whatsAppNumber: props.contact?.whatsAppNumber || '',
-    linkedInUrl: props.contact?.linkedInUrl || '',
-    facebookUrl: props.contact?.facebookUrl || '',
-    youTubeChannelUrl: props.contact?.youTubeChannelUrl || '',
-    notes: props.contact?.notes || ''
-  };
+const form = ref({
+  name: '',
+  email: '',
+  phoneNumber: '',
+  whatsAppNumber: '',
+  linkedInUrl: '',
+  facebookUrl: '',
+  youTubeChannelUrl: '',
+  notes: ''
 });
 
-const saveContact = async () => {
-  isSaving.value = true;
+const errorMessage = ref('');
 
-  // Prepara uma cópia dos dados do formulário para serem enviados
-  const payload = { ...form.value };
+const isEditMode = computed(() => !!props.contact);
 
-  // Transforma campos de URL vazios em null
-  if (payload.facebookUrl === '') {
-    payload.facebookUrl = null;
+watch(() => props.contact, (newVal) => {
+  if (newVal) {
+    form.value = { ...newVal };
+  } else {
+    form.value = {
+      name: '', email: '', phoneNumber: '', whatsAppNumber: '',
+      linkedInUrl: '', facebookUrl: '', youTubeChannelUrl: '', notes: ''
+    };
   }
-  if (payload.youTubeChannelUrl === '') {
-    payload.youTubeChannelUrl = null;
-  }
-  // O mesmo pode ser feito para outros campos de URL, se necessário
-  if (payload.linkedInUrl === '') {
-    payload.linkedInUrl = null;
-  }
+}, { immediate: true });
+
+const submitForm = async () => {
+  // Limpa a mensagem de erro anterior
+  errorMessage.value = '';
+  console.log('Formulário enviado. Modo de edição:', isEditMode.value);
 
   try {
-    if (isEditing.value) {
-      // Envia o payload corrigido
-      await apiService.updateNetworkContact(props.contact.id, payload);
+    if (isEditMode.value) {
+      // --- LOGS ADICIONADOS AQUI ---
+      console.log('Tentando ATUALIZAR contato com ID:', props.contact.id);
+      console.log('Dados enviados para a API:', form.value);
+
+      await apiService.updateNetworkContact(props.contact.id, form.value);
+
+      console.log('Contato atualizado com sucesso!');
     } else {
-      // Envia o payload corrigido
-      await apiService.createNetworkContact(payload);
+      console.log('Tentando CRIAR novo contato.');
+      await apiService.createNetworkContact(form.value);
+      console.log('Contato criado com sucesso!');
     }
+
     emit('saved');
     emit('close');
+
   } catch (error) {
-    console.error("Erro ao salvar contato:", error);
-    // Idealmente, mostrar um alerta de erro para o usuário aqui
-  } finally {
-    isSaving.value = false;
+    errorMessage.value = 'Erro ao salvar o contato. Verifique os campos e tente novamente.';
+    // --- LOG ADICIONADO AQUI ---
+    console.error('Ocorreu um erro na chamada da API:', error.response?.data || error.message);
   }
 };
 </script>
