@@ -169,13 +169,6 @@ input, select {
   gap: 1rem;
 }
 
-/* Layout de grid para os campos do formulário */
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-}
-
 /* Ajuste para campos que ocupam duas colunas */
 .form-group.col-span-2 {
   grid-column: span 2 / span 2;
