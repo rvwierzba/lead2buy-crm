@@ -2,8 +2,8 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
+// https://vitejs.dev/config/
 export default defineConfig({
-  base: '/',
   plugins: [
     vue(),
   ],
@@ -11,5 +11,17 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
-  }
+  },
+  build: {
+    rollupOptions: {
+      onwarn(warning, warn) {
+        // Ignora o aviso específico do signalr sobre PURE annotations
+        if (warning.code === 'INVALID_ANNOTATION' && warning.message.includes('@microsoft/signalr')) {
+          return;
+        }
+        // Mantém todos os outros avisos
+        warn(warning);
+      },
+    },
+  },
 })
