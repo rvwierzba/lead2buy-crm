@@ -1,67 +1,42 @@
 <template>
-  <div class="page-container">
-    <header class="page-header">
-      <div>
-        <h1 class="page-title">Rede de Contatos</h1>
-        <p class="page-subtitle">Gerencie seus contatos de networking profissionais.</p>
-      </div>
-     <button @click="openModal(contact)" class="btn btn-primary btn-sm">
-        <PlusIcon class="h-5 w-5 mr-2" />
-        Adicionar Contato
+  <div class="network-view">
+    <header class="view-header">
+      <h1><i class="fas fa-network-wired"></i> Minha Rede</h1>
+      <button @click="openModal(null)" class="add-btn">
+        <i class="fas fa-plus"></i> Adicionar Contato
       </button>
     </header>
 
-    <div v-if="loading" class="loading-text">Carregando contatos...</div>
-    <div v-else-if="error" class="error-text">{{ error }}</div>
+    <div class="contact-grid">
+      <div v-for="contact in contacts" :key="contact.id" class="contact-card">
+        <h3>{{ contact.name }}</h3>
+        <p v-if="contact.email"><i class="fas fa-envelope"></i> {{ contact.email }}</p>
+        <p v-if="contact.phoneNumber"><i class="fas fa-phone"></i> {{ contact.phoneNumber }}</p>
 
-    <div v-else class="table-container">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Email</th>
-            <th>Telefone</th>
-            <th>Redes Sociais</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody v-if="contacts.length > 0">
-          <tr v-for="contact in contacts" :key="contact.id">
-            <td>{{ contact.name }}</td>
-            <td>{{ contact.email || '-' }}</td>
-            <td>{{ contact.phoneNumber || '-' }}</td>
-            <td><SocialLinks :contact="contact" /></td>
-            <td>
-              <div class="action-buttons">
-                <button @click="openModal(contact)" class="btn-icon">
-                  <PencilIcon class="h-5 w-5" />
-                </button>
-                <button @click="confirmDelete(contact)" class="btn-icon btn-danger">
-                  <TrashIcon class="h-5 w-5" />
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-        <tbody v-else>
-          <tr>
-            <td colspan="5" class="empty-text">Nenhum contato na sua rede ainda.</td>
-          </tr>
-        </tbody>
-      </table>
+        <SocialLinks :contact="contact" />
+
+        <div class="card-actions">
+          <button @click="openModal(contact)" class="action-btn edit-btn">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button @click="confirmDelete(contact)" class="action-btn delete-btn">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
     </div>
 
     <NetworkContactModal
-      :is-open="isModalOpen"
+      v-if="isModalVisible"
       :contact="selectedContact"
       @close="closeModal"
       @saved="fetchContacts"
     />
 
     <ConfirmModal
-      :is-open="isConfirmModalOpen"
+      v-if="isConfirmModalVisible"
       title="Confirmar Exclusão"
-      message="Você tem certeza que deseja excluir este contato da sua rede? Esta ação não pode ser desfeita."
+      message="Tem certeza que deseja excluir este contato?"
       @confirm="deleteContact"
       @cancel="closeConfirmModal"
     />
@@ -72,152 +47,138 @@
 import { ref, onMounted } from 'vue';
 import apiService from '@/services/apiService';
 import NetworkContactModal from '@/components/Network/NetworkContactModal.vue';
-import SocialLinks from '@/components/Network/SocialLinks.vue';
 import ConfirmModal from '@/components/ConfirmModal.vue';
-import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/outline';
+import SocialLinks from '@/components/Network/SocialLinks.vue';
 
 const contacts = ref([]);
-const loading = ref(true);
-const error = ref(null);
-
-const isModalOpen = ref(false);
+// VARIÁVEIS DE CONTROLE QUE ESTAVAM FALTANDO
+const isModalVisible = ref(false);
 const selectedContact = ref(null);
-
-// --- CORREÇÃO AQUI ---
-// Inicializa a variável como 'false' e cria a lógica para controle
-const isConfirmModalOpen = ref(false);
+const isConfirmModalVisible = ref(false);
 const contactToDelete = ref(null);
 
-const fetchContacts = async () => {
-  loading.value = true;
-  try {
-    const response = await apiService.getNetworkContacts();
-    contacts.value = response.data;
-  } catch (err) {
-    console.error("Erro ao buscar contatos da rede:", err);
-    error.value = "Não foi possível carregar os contatos.";
-  } finally {
-    loading.value = false;
-  }
-};
-
-onMounted(fetchContacts);
-
-const openModal = (contact = null) => {
+// FUNÇÕES DE CONTROLE QUE ESTAVAM FALTANDO
+const openModal = (contact) => {
   selectedContact.value = contact;
-  isModalOpen.value = true;
+  isModalVisible.value = true;
 };
 
 const closeModal = () => {
-  isModalOpen.value = false;
+  isModalVisible.value = false;
   selectedContact.value = null;
 };
 
-const confirmDelete = (contact) => {
+const openConfirmModal = (contact) => {
   contactToDelete.value = contact;
-  isConfirmModalOpen.value = true;
+  isConfirmModalVisible.value = true;
 };
 
 const closeConfirmModal = () => {
-  isConfirmModalOpen.value = false;
+  isConfirmModalVisible.value = false;
   contactToDelete.value = null;
 };
 
+const fetchContacts = async () => {
+  try {
+    const response = await apiService.getNetworkContacts();
+    contacts.value = response.data;
+  } catch (error) {
+    console.error('Erro ao buscar contatos da rede:', error);
+  }
+};
+
+const confirmDelete = (contact) => {
+  openConfirmModal(contact);
+};
+
 const deleteContact = async () => {
-  if (!contactToDelete.value) return;
   try {
     await apiService.deleteNetworkContact(contactToDelete.value.id);
-    await fetchContacts(); // Recarrega a lista
-  } catch (err) {
-    console.error("Erro ao excluir contato:", err);
-    // Adicionar notificação de erro para o usuário
+    fetchContacts(); // Atualiza a lista após deletar
+  } catch (error) {
+    console.error('Erro ao deletar contato:', error);
   } finally {
     closeConfirmModal();
   }
 };
+
+onMounted(fetchContacts);
 </script>
 
 <style scoped>
-/* Estilos 100% adaptáveis usando as variáveis do seu tema */
-.page-container {
+/* Seu CSS continua o mesmo, não precisa mudar nada aqui */
+.network-view {
   padding: 2rem;
-  background-color: var(--color-background);
 }
-.page-header {
+.view-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
 }
-.page-title {
-  font-size: 2.25rem;
-  font-weight: 700;
+.view-header h1 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   color: var(--color-heading);
 }
-.page-subtitle {
-  color: var(--color-text-mute);
-  margin-top: 0.25rem;
-}
-.table-container {
-  background-color: var(--color-background-soft);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-.dark .table-container {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.data-table th, .data-table td {
-  padding: 1rem 1.5rem;
-  text-align: left;
-  border-bottom: 1px solid var(--color-border);
-}
-.data-table th {
-  background-color: var(--color-background-mute);
-  color: var(--color-text-mute);
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.data-table td {
-  color: var(--color-text);
-}
-.empty-text, .loading-text, .error-text {
-  text-align: center;
-  padding: 2rem;
-  color: var(--color-text-mute);
-}
-.error-text { color: #ef4444; }
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
+.add-btn {
   background-color: var(--primary-color);
   color: white;
-  padding: 0.75rem 1.5rem;
+  border: none;
+  padding: 10px 20px;
   border-radius: 8px;
-  font-weight: 500;
-  transition: background-color 0.2s;
-}
-.btn-primary:hover {
-  background-color: var(--primary-color-dark);
-}
-.action-buttons {
+  cursor: pointer;
+  font-weight: 600;
   display: flex;
+  align-items: center;
   gap: 0.5rem;
 }
-.btn-icon {
-  color: var(--color-text-mute);
-  transition: color 0.2s;
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
 }
-.btn-icon:hover {
-  color: var(--primary-color);
+.contact-card {
+  background: var(--color-background-soft);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
 }
-.btn-danger:hover {
-  color: #ef4444;
+.contact-card h3 {
+  margin-top: 0;
+  color: var(--color-heading);
+}
+.contact-card p {
+  margin: 0.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text-light);
+}
+.card-actions {
+  margin-top: auto;
+  padding-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+.action-btn {
+  background: none;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-light);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.action-btn:hover {
+  background-color: var(--color-background-mute);
+  color: var(--color-text);
 }
 </style>
