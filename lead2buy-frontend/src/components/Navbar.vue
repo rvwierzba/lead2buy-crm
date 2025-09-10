@@ -118,14 +118,12 @@ const logout = () => {
   color: var(--color-text);
 }
 
-/* Estilo para o link que está ativo */
 .nav-link.active {
   color: var(--color-heading);
-  font-weight: 700; /* Negrito */
-  background-color: var(--color-background-mute); /* Fundo sutil */
+  font-weight: 700;
+  background-color: var(--color-background-mute);
 }
 
-/* Ações do Usuário e Seletor de Tema */
 .user-actions {
   display: flex;
   align-items: center;
