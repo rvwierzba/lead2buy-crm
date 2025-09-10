@@ -84,17 +84,35 @@ watchEffect(() => {
 
 const saveContact = async () => {
   isSaving.value = true;
+
+  // Prepara uma cópia dos dados do formulário para serem enviados
+  const payload = { ...form.value };
+
+  // Transforma campos de URL vazios em null
+  if (payload.facebookUrl === '') {
+    payload.facebookUrl = null;
+  }
+  if (payload.youTubeChannelUrl === '') {
+    payload.youTubeChannelUrl = null;
+  }
+  // O mesmo pode ser feito para outros campos de URL, se necessário
+  if (payload.linkedInUrl === '') {
+    payload.linkedInUrl = null;
+  }
+
   try {
     if (isEditing.value) {
-      await apiService.updateNetworkContact(props.contact.id, form.value);
+      // Envia o payload corrigido
+      await apiService.updateNetworkContact(props.contact.id, payload);
     } else {
-      await apiService.createNetworkContact(form.value);
+      // Envia o payload corrigido
+      await apiService.createNetworkContact(payload);
     }
     emit('saved');
     emit('close');
   } catch (error) {
     console.error("Erro ao salvar contato:", error);
-    // Adicionar um feedback para o usuário aqui seria uma boa prática
+    // Idealmente, mostrar um alerta de erro para o usuário aqui
   } finally {
     isSaving.value = false;
   }

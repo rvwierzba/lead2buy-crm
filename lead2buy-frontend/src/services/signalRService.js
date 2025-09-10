@@ -1,55 +1,62 @@
 import * as signalR from "@microsoft/signalr";
-import { useAuthStore } from "@/stores/authStore";
+import { useAuthStore } from '@/stores/authStore';
 
-const signalRService = {
-  connection: null,
-
-  startConnection() {
-    if (this.connection && this.connection.state === signalR.HubConnectionState.Connected) {
-      console.log("A conexão SignalR já está ativa.");
-      return;
+class SignalRService {
+    constructor() {
+        this.connection = null;
+        this.startPromise = null;
     }
 
-    const authStore = useAuthStore();
+    startConnection() {
+        const authStore = useAuthStore();
+        const token = authStore.token;
 
-    // --- A CORREÇÃO FINAL ESTÁ AQUI ---
-    // Usa um caminho relativo para se conectar ao mesmo domínio (https://crm.rvwtech.com.br)
-    const hubUrl = "/notificationHub";
-    // --- FIM DA CORREÇÃO ---
+        if (!token) {
+            console.log("SignalR: Token não encontrado. Conexão não iniciada.");
+            return Promise.reject("Token não encontrado.");
+        }
 
-    this.connection = new signalR.HubConnectionBuilder()
-      .withUrl(hubUrl, {
-        accessTokenFactory: () => authStore.token,
-      })
-      .withAutomaticReconnect()
-      .build();
+        this.connection = new signalR.HubConnectionBuilder()
+            .withUrl("/notificationHub", {
+                accessTokenFactory: () => token
+            })
+            .withAutomaticReconnect()
+            .build();
 
-    this.connection.start()
-      .then(() => console.log("Conexão SignalR estabelecida com sucesso."))
-      .catch(err => {
-        console.error("Erro na conexão SignalR: ", err);
-        // Tenta reconectar após um atraso
-        setTimeout(() => this.startConnection(), 5000);
-      });
+        this.startPromise = this.connection.start()
+            .then(() => console.log("SignalR Connection Started"))
+            .catch(err => {
+                console.error("SignalR Connection Error: ", err);
+                // Limpa a promessa em caso de falha para permitir nova tentativa
+                this.startPromise = null;
+                return Promise.reject(err);
+            });
 
-    this.connection.onclose(async () => {
-      console.log("Conexão SignalR fechada. Tentando reconectar...");
-      await this.startConnection();
-    });
-  },
-
-  registerJobStatusUpdate(callback) {
-    if (this.connection) {
-      this.connection.on("JobStatusUpdate", callback);
+        return this.startPromise;
     }
-  },
 
-  stopConnection() {
-    if (this.connection) {
-      this.connection.stop();
-      this.connection = null;
+    // Garante que a conexão está pronta antes de registrar um listener
+    async on(methodName, newMethod) {
+        if (!this.startPromise) {
+            // Se a conexão não foi nem tentada, inicia agora
+            await this.startConnection();
+        } else {
+            // Se já foi tentada, apenas aguarda a conclusão
+            await this.startPromise;
+        }
+
+        if (this.connection) {
+            this.connection.on(methodName, newMethod);
+        }
     }
-  }
-};
 
-export default signalRService;
+    stopConnection() {
+        if (this.connection) {
+            this.connection.stop();
+            this.connection = null;
+            this.startPromise = null;
+        }
+    }
+}
+
+export default new SignalRService();
