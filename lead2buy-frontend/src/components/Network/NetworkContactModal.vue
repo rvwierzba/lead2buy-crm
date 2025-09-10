@@ -52,24 +52,34 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue';
+import { ref, watchEffect, computed } from 'vue';
 import apiService from '@/services/apiService';
 
-const props = defineProps({ isOpen: Boolean, contact: Object });
+const props = defineProps({
+  isOpen: Boolean,
+  contact: Object
+});
+
 const emit = defineEmits(['close', 'saved']);
+
 const form = ref({});
 const isSaving = ref(false);
 const isEditing = computed(() => props.contact && props.contact.id);
 
-watch(() => props.isOpen, (newVal) => {
-  if (newVal) {
-    form.value = {
-      name: props.contact?.name || '', email: props.contact?.email || '',
-      phoneNumber: props.contact?.phoneNumber || '', whatsAppNumber: props.contact?.whatsAppNumber || '',
-      linkedInUrl: props.contact?.linkedInUrl || '', facebookUrl: props.contact?.facebookUrl || '',
-      youTubeChannelUrl: props.contact?.youTubeChannelUrl || '', notes: props.contact?.notes || '',
-    };
-  }
+// watchEffect reage às dependências dentro dele (props.contact).
+// Ele executa imediatamente e sempre que o 'props.contact' mudar.
+watchEffect(() => {
+  // Preenche o formulário com os dados do contato ou com strings vazias
+  form.value = {
+    name: props.contact?.name || '',
+    email: props.contact?.email || '',
+    phoneNumber: props.contact?.phoneNumber || '',
+    whatsAppNumber: props.contact?.whatsAppNumber || '',
+    linkedInUrl: props.contact?.linkedInUrl || '',
+    facebookUrl: props.contact?.facebookUrl || '',
+    youTubeChannelUrl: props.contact?.youTubeChannelUrl || '',
+    notes: props.contact?.notes || ''
+  };
 });
 
 const saveContact = async () => {
@@ -84,6 +94,7 @@ const saveContact = async () => {
     emit('close');
   } catch (error) {
     console.error("Erro ao salvar contato:", error);
+    // Adicionar um feedback para o usuário aqui seria uma boa prática
   } finally {
     isSaving.value = false;
   }

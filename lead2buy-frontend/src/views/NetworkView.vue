@@ -5,7 +5,7 @@
         <h1 class="page-title">Rede de Contatos</h1>
         <p class="page-subtitle">Gerencie seus contatos de networking profissionais.</p>
       </div>
-      <button @click="openModal()" class="btn-primary">
+     <button @click="openModal(contact)" class="btn btn-primary btn-sm">
         <PlusIcon class="h-5 w-5 mr-2" />
         Adicionar Contato
       </button>
