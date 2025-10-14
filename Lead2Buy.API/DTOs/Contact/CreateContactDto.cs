@@ -27,6 +27,7 @@ namespace Lead2Buy.API.Dtos.Contact
         public string? City { get; set; }
         public string? State { get; set; }
         public string? Observations { get; set; }
+        public Guid? FunnelStageId { get; set; }
        
     }
 }

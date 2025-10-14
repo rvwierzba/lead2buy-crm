@@ -10,6 +10,6 @@ namespace Lead2Buy.API.Dtos.Task
         [Required]
         public DateTime DueDate { get; set; }
         [Required]
-        public int ContactId { get; set; }
+        public Guid ContactId { get; set; } = new Guid();
     }
 }

@@ -66,9 +66,17 @@ namespace Lead2Buy.API.Controllers
         private string GenerateJwtToken(User user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            // --- CORREÇÃO AQUI ---
-            // Lê as variáveis de ambiente corretas (JWT_KEY, JWT_ISSUER, etc.)
-            var key = Encoding.ASCII.GetBytes(_configuration["JWT_KEY"]);
+
+            // --- CORREÇÃO ---
+            var secret = _configuration["JWT_KEY"];
+            if (string.IsNullOrEmpty(secret))
+                throw new InvalidOperationException("JWT_KEY não configurada no appsettings ou variáveis de ambiente.");
+
+            var key = Encoding.UTF8.GetBytes(secret);
+
+            var issuer = _configuration["JWT_ISSUER"];
+            var audience = _configuration["JWT_AUDIENCE"];
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]
@@ -78,10 +86,14 @@ namespace Lead2Buy.API.Controllers
                     new Claim(ClaimTypes.Email, user.Email)
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
-                Issuer = _configuration["JWT_ISSUER"],
-                Audience = _configuration["JWT_AUDIENCE"],
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                Issuer = issuer,
+                Audience = audience,
+                SigningCredentials = new SigningCredentials(
+                    new SymmetricSecurityKey(key),
+                    SecurityAlgorithms.HmacSha256Signature
+                )
             };
+
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }

@@ -6,11 +6,12 @@ namespace Lead2Buy.API.Models
     public class NetworkContact
     {
         [Key]
-        public int Id { get; set; }
+        public Guid Id { get; set; } = new Guid();
 
         [Required]
         [MaxLength(100)]
-        public string Name { get; set; } 
+        public required string Name { get; set; }
+ 
 
         [MaxLength(20)]
         public string? PhoneNumber { get; set; }
@@ -39,7 +40,7 @@ namespace Lead2Buy.API.Models
 
         public string? Notes { get; set; }
 
-        public int UserId { get; set; }
+        public Guid UserId { get; set; }
         [ForeignKey("UserId")]
         public virtual User? User { get; set; }
     }

@@ -4,7 +4,7 @@ namespace Lead2Buy.API.Models
 {
     public class Contact
     {
-        public int Id { get; set; }
+         public Guid Id { get; set; } = new Guid();
 
         [Required]
         [MaxLength(100)]
@@ -38,11 +38,16 @@ namespace Lead2Buy.API.Models
         public string? City { get; set; }
         [MaxLength(2)]
         public string? State { get; set; }
+        public string? Interest { get; set; }
+
 
         public string? Observations { get; set; }
 
-        [Required]
-        public string Status { get; set; } = "Lead"; // Começa como Lead por padrão
+        public Guid FunnelStageId { get; set; }
+        public FunnelStage? FunnelStage { get; set; }
+        public Guid? ResponsibleUserId { get; set; }
+        public User? ResponsibleUser { get; set; }
+
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public List<Interaction> Interactions { get; set; } = new();

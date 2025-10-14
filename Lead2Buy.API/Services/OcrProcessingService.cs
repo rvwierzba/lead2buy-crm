@@ -28,13 +28,12 @@ namespace Lead2Buy.API.Services
         {
             _logger.LogInformation("Serviço de Processamento de OCR está se inscrevendo na fila Redis.");
             
-            // Cria um 'scope' para resolver o serviço Redis
             await using var scope = _serviceProvider.CreateAsyncScope();
             var redis = scope.ServiceProvider.GetRequiredService<IConnectionMultiplexer>();
             var subscriber = redis.GetSubscriber();
 
-            // Se inscreve no canal 'ocr_jobs_channel' e define a função que será chamada
-            await subscriber.SubscribeAsync("ocr_jobs_channel", async (channel, jobIdValue) =>
+            // Inscrição no canal Redis com RedisChannel.Literal
+            await subscriber.SubscribeAsync(RedisChannel.Literal("ocr_jobs_channel"), async (channel, jobIdValue) =>
             {
                 if (int.TryParse(jobIdValue, out int jobId))
                 {
@@ -43,18 +42,16 @@ namespace Lead2Buy.API.Services
                 }
             });
 
-            // Mantém o serviço rodando em segundo plano
             while (!stoppingToken.IsCancellationRequested)
             {
                 await Task.Delay(Timeout.Infinite, stoppingToken);
             }
 
-             _logger.LogInformation("Serviço de Processamento de OCR está parando.");
+            _logger.LogInformation("Serviço de Processamento de OCR está parando.");
         }
 
         private async Task ProcessJob(int jobId)
         {
-            // Cria um novo 'scope' para esta execução, garantindo que os serviços (DbContext, etc.) sejam "novos"
             await using var scope = _serviceProvider.CreateAsyncScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var hubContext = scope.ServiceProvider.GetRequiredService<IHubContext<NotificationHub>>();
@@ -97,9 +94,13 @@ namespace Lead2Buy.API.Services
 
         private async Task<string> ExtractTextWithOcrSpace(ChatJob job, IHttpClientFactory httpClientFactory)
         {
+            if (string.IsNullOrEmpty(job.FilePath))
+                throw new Exception("Caminho do arquivo não definido para o Job.");
+
             var fileBytes = await File.ReadAllBytesAsync(job.FilePath);
             var ocrApiKey = _configuration["OcrApiKey"];
-            if (string.IsNullOrEmpty(ocrApiKey)) throw new Exception("Chave da API do OCR.space não configurada.");
+            if (string.IsNullOrEmpty(ocrApiKey)) 
+                throw new Exception("Chave da API do OCR.space não configurada.");
 
             using var httpClient = httpClientFactory.CreateClient();
             using var form = new MultipartFormDataContent();
@@ -110,7 +111,8 @@ namespace Lead2Buy.API.Services
             form.Add(fileContent, "file", Path.GetFileName(job.FilePath));
             
             var ocrResponse = await httpClient.PostAsync("https://api.ocr.space/parse/image", form);
-            if (!ocrResponse.IsSuccessStatusCode) throw new Exception($"Erro na API do OCR.space: {await ocrResponse.Content.ReadAsStringAsync()}");
+            if (!ocrResponse.IsSuccessStatusCode) 
+                throw new Exception($"Erro na API do OCR.space: {await ocrResponse.Content.ReadAsStringAsync()}");
 
             var jsonResponse = await ocrResponse.Content.ReadFromJsonAsync<JsonElement>();
             return jsonResponse.GetProperty("ParsedResults")[0].GetProperty("ParsedText").GetString() ?? "";

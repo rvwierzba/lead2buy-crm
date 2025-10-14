@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:16-alpine
+    image: postgres:18
     container_name: lead2buy-db
     restart: always
     environment:
@@ -8,11 +8,35 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     networks:
       - lead2buy-network
+
+  api:
+    build: ./Lead2Buy.API
+    container_name: lead2buy-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      JWT_KEY: ${JWT_KEY}
+    ports:
+      - "5000:8080"
+    networks:
+      - lead2buy-network
+
 
   redis:
     image: redis:alpine
@@ -20,76 +44,25 @@ services:
     restart: always
     ports:
       - "6379:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - lead2buy-network
-
-  ollama:
-    build:
-      context: ./ollama
-      dockerfile: Dockerfile
-    container_name: lead2buy-ollama
-    restart: always
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    networks:
-      - lead2buy-network
-
-  lead2buy-api:
-    build:
-      context: ./Lead2Buy.API
-      dockerfile: Dockerfile
-    container_name: lead2buy-api
-    restart: always
-    ports:
-      - "8080:8080"
-    environment:
-      - CORS_ORIGIN=https://crm.rvwtech.com.br
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:8080
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_NAME=${POSTGRES_DB}
-      - DB_USER=${POSTGRES_USER}
-      - DB_PASSWORD=${POSTGRES_PASSWORD}
-      - JWT_KEY=${JWT_KEY}
-      - JWT_ISSUER=${JWT_ISSUER}
-      - JWT_AUDIENCE=${JWT_AUDIENCE}
-      - REDIS_CONNECTION_STRING=redis:6379
-      - OLLAMA_URL=http://ollama:11434
-      - MAILJET_API_KEY=${MAILJET_API_KEY}
-      - MAILJET_SECRET_KEY=${MAILJET_SECRET_KEY}
-      - MAILJET_FROM_EMAIL=${MAILJET_FROM_EMAIL}
-    depends_on:
-      - db
-      - redis
-      - ollama
     networks:
       - lead2buy-network
 
   nginx:
-    build: .
+    image: nginx:alpine
     container_name: lead2buy-nginx
     restart: always
     ports:
       - "80:80"
-      - "443:443"
     volumes:
-      - /etc/letsencrypt:/etc/letsencrypt
-      - /var/www/html:/var/www/html
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - lead2buy-api
+      - api
     networks:
       - lead2buy-network
+
+volumes:
+  postgres_data:
 
 networks:
   lead2buy-network:
     driver: bridge
-
-volumes:
-  postgres_data:
-  redis_data:
-  ollama_data:

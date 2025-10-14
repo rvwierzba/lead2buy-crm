@@ -63,7 +63,7 @@ namespace Lead2Buy.API.Controllers
 
         // PUT: api/tasks/5 (atualiza uma tarefa DO USUÁRIO LOGADO)
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateTask(int id, UpdateTaskDto request)
+        public async Task<IActionResult> UpdateTask(Guid id, UpdateTaskDto request)
         {
             var userId = GetUserId();
             var task = await _context.CrmTasks.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
@@ -84,7 +84,7 @@ namespace Lead2Buy.API.Controllers
 
         // DELETE: api/tasks/5 (deleta uma tarefa DO USUÁRIO LOGADO)
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteTask(int id)
+        public async Task<IActionResult> DeleteTask(Guid id)
         {
             var userId = GetUserId();
             var task = await _context.CrmTasks.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
@@ -101,14 +101,14 @@ namespace Lead2Buy.API.Controllers
         }
 
         // Método auxiliar para pegar o ID do usuário a partir do token JWT
-        private int GetUserId()
+        private Guid GetUserId()
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdString))
             {
                 throw new Exception("ID do usuário não encontrado no token.");
             }
-            return int.Parse(userIdString);
+            return Guid.Parse(userIdString);
         }
     }
 }

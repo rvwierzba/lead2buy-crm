@@ -4,149 +4,94 @@ using Lead2Buy.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 using StackExchange.Redis;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- Serviços ---
-builder.Services.AddHttpClient("OllamaClient", client => { client.Timeout = TimeSpan.FromSeconds(300); });
+// DbContext
+var connectionString = builder.Environment.IsDevelopment()
+    ? builder.Configuration.GetConnectionString("DefaultConnection")
+    : builder.Configuration.GetConnectionString("DockerConnection");
 
-var corsOrigin = builder.Configuration["CORS_ORIGIN"];
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowSpecificOrigin", policy =>
-    {
-        var origins = !string.IsNullOrEmpty(corsOrigin)
-            ? new[] { corsOrigin }
-            : new[] { "http://localhost:8080", "http://localhost:5173" };
-        
-        policy.WithOrigins(origins)
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
-    });
-});
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
-var dbHost = builder.Configuration["DB_HOST"];
-var dbPort = builder.Configuration["DB_PORT"];
-var dbName = builder.Configuration["DB_NAME"];
-var dbUser = builder.Configuration["DB_USER"];
-var dbPassword = builder.Configuration["DB_PASSWORD"];
-var fullConnectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPassword};";
-builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(fullConnectionString));
-
-
-var redisConnectionString = builder.Configuration["REDIS_CONNECTION_STRING"];
-if (!string.IsNullOrEmpty(redisConnectionString))
-{
-    builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConnectionString));
-}
-else
-{
-    Console.WriteLine("AVISO CRÍTICO: String de conexão do Redis não foi encontrada.");
-}
-
-builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddHostedService<OcrProcessingService>();
-builder.Services.AddControllers().AddJsonOptions(options => {
-    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
-});
+// SignalR
 builder.Services.AddSignalR();
-builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddSwaggerGen(options =>
+// Redis multiplexer
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Lead2Buy API", Version = "v1" });
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        In = ParameterLocation.Header,
-        Description = "Por favor, insira 'Bearer' seguido de um espaço e o token JWT",
-        Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
-    });
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement {
-    {
-        new OpenApiSecurityScheme
-        {
-            Reference = new OpenApiReference
-            {
-                Type = ReferenceType.SecurityScheme,
-                Id = "Bearer"
-            }
-        },
-        new string[] {}
-    }});
+    var config = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
+    return ConnectionMultiplexer.Connect(config);
 });
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options => {
+// HttpClient (para OCR e IA)
+builder.Services.AddHttpClient();
+builder.Services.AddHttpClient("OllamaClient");
+
+// Background service de OCR
+builder.Services.AddHostedService<OcrProcessingService>();
+
+// Email service
+builder.Services.AddScoped<IEmailService, EmailService>();
+
+// Controllers e JSON
+builder.Services.AddControllers();
+
+// CORS
+builder.Services.AddCors(opts =>
+{
+    opts.AddPolicy("Default", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
+// JWT Auth
+var secret = builder.Configuration["JWT_KEY"];
+if (string.IsNullOrEmpty(secret))
+    throw new InvalidOperationException("JWT_KEY não configurada.");
+
+var issuer = builder.Configuration["JWT_ISSUER"];
+var audience = builder.Configuration["JWT_AUDIENCE"];
+
+var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+
+builder.Services
+    .AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = false; // ajuste para produção
+        options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["JWT_ISSUER"],
-            ValidAudience = builder.Configuration["JWT_AUDIENCE"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT_KEY"]))
+            IssuerSigningKey = key,
+            ValidateIssuer = !string.IsNullOrEmpty(issuer),
+            ValidIssuer = issuer,
+            ValidateAudience = !string.IsNullOrEmpty(audience),
+            ValidAudience = audience,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromMinutes(2)
         };
     });
 
 var app = builder.Build();
 
- app.UseSwagger();
- app.UseSwaggerUI(c =>
- {
-     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Lead2Buy API V1");
-     // Faz a documentação da API ser a página principal do seu domínio de backend.
-     c.RoutePrefix = string.Empty; 
- });
+app.UseCors("Default");
 
-
-app.UseCors("AllowSpecificOrigin");
-app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
-app.MapHub<NotificationHub>("/notificationHub");
-
-// --- Lógica de Migração (Completa) ---
-#region Database Migration
-var logger = app.Services.GetRequiredService<ILogger<Program>>();
-var maxRetries = 5;
-var retryDelay = TimeSpan.FromSeconds(10);
-
-for (int i = 0; i < maxRetries; i++)
-{
-    try
-    {
-        using (var scope = app.Services.CreateScope())
-        {
-            var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            logger.LogInformation("Tentando aplicar migrações do banco de dados (Tentativa {Attempt}/{MaxAttempts})...", i + 1, maxRetries);
-            dbContext.Database.Migrate();
-            logger.LogInformation("Migrações do banco de dados aplicadas com sucesso.");
-        }
-        break; 
-    }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, "Ocorreu um erro durante a migração do banco de dados na tentativa {Attempt}.", i + 1);
-        if (i < maxRetries - 1)
-        {
-            logger.LogInformation("Aguardando {Delay} segundos antes da próxima tentativa.", retryDelay.Seconds);
-            await Task.Delay(retryDelay); 
-        }
-        else
-        {
-            logger.LogCritical(ex, "Não foi possível conectar ao banco de dados após {MaxAttempts} tentativas. A aplicação será encerrada.", maxRetries);
-            throw; 
-        }
-    }
-}
-#endregion
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.Run();

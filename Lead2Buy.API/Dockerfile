@@ -1,23 +1,22 @@
-# Estágio de build
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+WORKDIR /app
+
+# instala cliente psql para o start.sh poder rodar ALTER USER
+RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
+
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-
-# Copia o arquivo .csproj e restaura as dependências
 COPY ["Lead2Buy.API.csproj", "."]
 RUN dotnet restore "./Lead2Buy.API.csproj"
-
-# Copia todo o resto do código da API
 COPY . .
-
-# Builda o projeto
 RUN dotnet build "Lead2Buy.API.csproj" -c Release -o /app/build
 
-# Estágio de publicação
 FROM build AS publish
 RUN dotnet publish "Lead2Buy.API.csproj" -c Release -o /app/publish
 
-# Estágio final
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Lead2Buy.API.dll"]
+COPY start.sh .
+RUN chmod +x start.sh
+ENTRYPOINT ["./start.sh"]

@@ -4,7 +4,7 @@ namespace Lead2Buy.API.Models
 {
     public class Interaction
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; } = new Guid();
 
         [Required]
         [MaxLength(50)]
@@ -15,7 +15,7 @@ namespace Lead2Buy.API.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // --- Chave Estrangeira para o Contato ---
-        public int ContactId { get; set; }
+        public Guid ContactId { get; set; }
         public Contact? Contact { get; set; }
     }
 }

@@ -12,26 +12,26 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Lead2Buy.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250909184301_AddSocialFieldsToNetworkContact")]
-    partial class AddSocialFieldsToNetworkContact
+    [Migration("20251014162617_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.19")
+                .HasAnnotation("ProductVersion", "8.0.20")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "pgcrypto");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Lead2Buy.API.Models.ChatJob", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<string>("AiResponse")
                         .HasColumnType("text");
@@ -48,8 +48,8 @@ namespace Lead2Buy.API.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("UserPrompt")
                         .IsRequired()
@@ -64,11 +64,10 @@ namespace Lead2Buy.API.Migrations
 
             modelBuilder.Entity("Lead2Buy.API.Models.Contact", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<string>("Cep")
                         .HasMaxLength(9)
@@ -87,6 +86,9 @@ namespace Lead2Buy.API.Migrations
                     b.Property<string>("Email")
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
+
+                    b.Property<Guid>("FunnelStageId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Gender")
                         .HasMaxLength(20)
@@ -113,6 +115,9 @@ namespace Lead2Buy.API.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<Guid?>("ResponsibleUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Source")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
@@ -121,29 +126,28 @@ namespace Lead2Buy.API.Migrations
                         .HasMaxLength(2)
                         .HasColumnType("character varying(2)");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("Street")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("FunnelStageId");
+
+                    b.HasIndex("ResponsibleUserId");
+
                     b.ToTable("Contacts");
                 });
 
             modelBuilder.Entity("Lead2Buy.API.Models.CrmTask", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ContactId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("ContactId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -162,8 +166,8 @@ namespace Lead2Buy.API.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -174,16 +178,37 @@ namespace Lead2Buy.API.Migrations
                     b.ToTable("CrmTasks");
                 });
 
+            modelBuilder.Entity("Lead2Buy.API.Models.FunnelStage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsFinal")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("Order")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FunnelStages");
+                });
+
             modelBuilder.Entity("Lead2Buy.API.Models.Interaction", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ContactId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("ContactId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -206,11 +231,10 @@ namespace Lead2Buy.API.Migrations
 
             modelBuilder.Entity("Lead2Buy.API.Models.NetworkContact", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<string>("Email")
                         .HasMaxLength(150)
@@ -240,8 +264,8 @@ namespace Lead2Buy.API.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("WhatsAppNumber")
                         .HasMaxLength(20)
@@ -257,13 +281,39 @@ namespace Lead2Buy.API.Migrations
                     b.ToTable("NetworkContacts");
                 });
 
+            modelBuilder.Entity("Lead2Buy.API.Models.StageResponsibility", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("FunnelStageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FunnelStageId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("StageResponsibilities");
+                });
+
             modelBuilder.Entity("Lead2Buy.API.Models.User", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -296,6 +346,23 @@ namespace Lead2Buy.API.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Lead2Buy.API.Models.Contact", b =>
+                {
+                    b.HasOne("Lead2Buy.API.Models.FunnelStage", "FunnelStage")
+                        .WithMany()
+                        .HasForeignKey("FunnelStageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Lead2Buy.API.Models.User", "ResponsibleUser")
+                        .WithMany()
+                        .HasForeignKey("ResponsibleUserId");
+
+                    b.Navigation("FunnelStage");
+
+                    b.Navigation("ResponsibleUser");
                 });
 
             modelBuilder.Entity("Lead2Buy.API.Models.CrmTask", b =>
@@ -335,6 +402,25 @@ namespace Lead2Buy.API.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Lead2Buy.API.Models.StageResponsibility", b =>
+                {
+                    b.HasOne("Lead2Buy.API.Models.FunnelStage", "FunnelStage")
+                        .WithMany()
+                        .HasForeignKey("FunnelStageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Lead2Buy.API.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FunnelStage");
 
                     b.Navigation("User");
                 });

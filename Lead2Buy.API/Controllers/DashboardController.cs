@@ -24,24 +24,39 @@ namespace Lead2Buy.API.Controllers
         public async Task<IActionResult> GetStatistics()
         {
             var totalLeads = await _context.Contacts.CountAsync();
-            
-            var opportunities = await _context.Contacts
-                .Where(c => c.Status == "Proposta Apresentada" || c.Status == "Negociação")
-                .CountAsync();
-            
-            var convertedLeads = await _context.Contacts
-                .Where(c => c.Status == "Convertido")
-                .CountAsync();
+
+            // Buscar etapas relevantes
+            var propostaStage = await _context.FunnelStages.FirstOrDefaultAsync(s => s.Name == "Proposta Apresentada");
+            var negociacaoStage = await _context.FunnelStages.FirstOrDefaultAsync(s => s.Name == "Negociação");
+            var convertidoStage = await _context.FunnelStages.FirstOrDefaultAsync(s => s.Name == "Convertido");
+
+            var opportunities = 0;
+            if (propostaStage != null || negociacaoStage != null)
+            {
+                opportunities = await _context.Contacts
+                    .Where(c =>
+                        (propostaStage != null && c.FunnelStageId == propostaStage.Id) ||
+                        (negociacaoStage != null && c.FunnelStageId == negociacaoStage.Id))
+                    .CountAsync();
+            }
+
+            var convertedLeads = 0;
+            if (convertidoStage != null)
+            {
+                convertedLeads = await _context.Contacts
+                    .Where(c => c.FunnelStageId == convertidoStage.Id)
+                    .CountAsync();
+            }
 
             var newContactsThisMonth = await _context.Contacts
                 .Where(c => c.CreatedAt.Month == DateTime.UtcNow.Month && c.CreatedAt.Year == DateTime.UtcNow.Year)
                 .CountAsync();
-            
+
             var pendingTasks = await _context.CrmTasks
                 .Where(t => !t.IsCompleted && t.DueDate.Date <= DateTime.UtcNow.Date)
                 .CountAsync();
 
-            double conversionRate = totalLeads > 0 ? (double)convertedLeads / opportunities * 100 : 0;
+            double conversionRate = opportunities > 0 ? (double)convertedLeads / opportunities * 100 : 0;
 
             var stats = new DashboardStatsDto
             {
@@ -69,8 +84,6 @@ namespace Lead2Buy.API.Controllers
 
             var result = leads.Select(l => new LeadsOverTimeDto
             {
-                // --- CORREÇÃO AQUI ---
-                // Agora preenche a propriedade 'Date' como você especificou.
                 Date = new DateTime(l.Year, l.Month, 1).ToString("MMM/yy", CultureInfo.InvariantCulture),
                 Count = l.Count
             }).ToList();
@@ -90,7 +103,7 @@ namespace Lead2Buy.API.Controllers
 
             return Ok(performance);
         }
-        
+
         [HttpGet("recent-contacts")]
         public async Task<IActionResult> GetRecentContacts()
         {

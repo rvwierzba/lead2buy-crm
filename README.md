@@ -1,77 +1,188 @@
-# Lead2Buy CRM
-## by [RVWtech](www.rvwtech.com.br)
+# Lead2Buy CRM  
+## by [RVWtech](https://www.rvwtech.com.br)
 
-Lead2Buy CRM é uma plataforma completa de Gestão de Relacionamento com o Cliente (CRM) projetada para otimizar o processo de vendas e o engajamento com contatos. A aplicação integra um frontend moderno em Vue.js com um backend robusto em .NET, utilizando uma arquitetura de microsserviços conteinerizada com Docker.
+Lead2Buy CRM é uma plataforma completa de **Gestão de Relacionamento com o Cliente (CRM)** projetada para otimizar o processo de vendas, engajamento com contatos e automação de processos.  
+A aplicação integra um **frontend moderno em Vue.js** com um **backend robusto em .NET**, utilizando **Clean Architecture** e uma **arquitetura de microsserviços conteinerizada com Docker**.
 
-## ✨ Funcionalidades
+---
 
-- **Gestão de Contatos:** Crie, edite, visualize e remova contatos de forma centralizada.
-- **Funil de Vendas:** Organize seus contatos em um funil visual estilo Kanban para acompanhar o progresso de cada lead.
-- **Dashboard Analítico:** Visualize métricas importantes, como total de leads, novos contatos no mês, e performance por origem.
-- **Gestão de Tarefas:** Crie e gerencie tarefas associadas a cada contato para nunca perder um follow-up.
-- **Chatbot com IA:** Utilize um chatbot integrado com Ollama para interagir e obter insights.
-- **Importação e Exportação:** Exporte sua lista de contatos para CSV e importe novos contatos a partir de planilhas.
-- **Autenticação Segura:** Sistema de registro e login com JWT (JSON Web Tokens) para proteger o acesso.
-- **Notificações em Tempo Real:** Receba atualizações sobre processos demorados (como OCR) através de SignalR.
+## ✨ Funcionalidades Existentes
 
-## 🚀 Tecnologias Utilizadas
+- **Gestão de Contatos:** Criação, edição, visualização e exclusão de contatos.  
+- **Funil de Vendas (Kanban):** Acompanhamento visual do progresso de cada lead.  
+- **Dashboard Analítico:** Métricas como total de leads, novos contatos no mês e performance por origem.  
+- **Gestão de Tarefas:** Criação e acompanhamento de tarefas vinculadas a contatos.  
+- **Interações:** Registro de ligações, e-mails, reuniões e observações.  
+- **Chatbot com IA:** Integração com **Ollama** para insights inteligentes.  
+- **Importação e Exportação:** Exportação de contatos para CSV e importação a partir de planilhas.  
+- **Autenticação Segura:** Registro e login com **JWT (JSON Web Tokens)**.  
+- **Notificações em Tempo Real:** Atualizações via **SignalR**.  
+- **OCR e Processos Assíncronos:** Processamento em background com feedback em tempo real.  
 
-- **Frontend:** Vue.js 3, Pinia, Axios, Tailwind CSS
-- **Backend:** .NET 8, ASP.NET Core Web API, Entity Framework Core
-- **Banco de Dados:** PostgreSQL
-- **Cache e Filas:** Redis
-- **Inteligência Artificial:** Ollama com o modelo `phi4-mini:q`
-- **Servidor Web e Proxy Reverso:** Nginx
-- **Containerização:** Docker e Docker Compose
+---
+
+## 🔥 Novas Funcionalidades em Desenvolvimento
+
+- **Múltiplos Usuários e Perfis:** Cada etapa do funil pode ter um responsável (Comercial, Agendamento, Follow-up, Confirmação, Compareceu, Convertido, Remarketing).  
+- **Histórico de Eficiência:** Registro de logins e ações para medir produtividade individual e da equipe.  
+- **Calendário por Usuário:** Agenda integrada com compromissos vinculados a leads, incluindo origem e interesse.  
+- **Timeline do Lead:** Linha do tempo detalhada com todas as interações e movimentações do lead.  
+- **Módulo de BI com IA:** Inteligência artificial observando métricas em tempo real e gerando análises automáticas em uma seção exclusiva.  
+- **Integração com n8n:** Entrada automática de leads (nome, telefone, origem) via automações conectadas ao **Evolution**.  
+
+---
+
+## 🏗️ Arquitetura do Sistema
+
+O Lead2Buy segue **Clean Architecture** e boas práticas de design:
+
+- **Frontend (Vue.js 3 + Tailwind CSS):**
+  - Padrão de design consistente (cores, dark/light mode, tipografia).
+  - Componentização reutilizável.
+  - Pinia para gerenciamento de estado.
+  - Axios para comunicação com a API.
+
+- **Backend (.NET 8 + ASP.NET Core Web API):**
+  - **Camada de Domínio:** Entidades (`User`, `Contact`, `CrmTask`, `Interaction`, etc.).
+  - **Camada de Aplicação:** Serviços e regras de negócio.
+  - **Camada de Infraestrutura:** Persistência com Entity Framework Core (PostgreSQL), Redis, EmailService.
+  - **Camada de Apresentação:** Controllers REST, SignalR Hubs, Swagger.
+
+- **Banco de Dados:** PostgreSQL (persistência principal).  
+- **Cache e Filas:** Redis (tarefas assíncronas, notificações).  
+- **IA:** Ollama (modelo `phi4-mini:q`) para chatbot e análises.  
+- **Comunicação em Tempo Real:** SignalR.  
+- **Containerização:** Docker e Docker Compose para orquestração.  
+- **Servidor Web:** Nginx como proxy reverso.  
+
+---
+
+## 📂 Estrutura do Projeto
+```
+lead2buy-crm/
+│
+├── backend/
+│   └── Lead2Buy.API/
+│       ├── Controllers/        # Endpoints REST
+│       ├── Data/               # DbContext e Migrations
+│       ├── Hubs/               # SignalR Hubs
+│       ├── Models/             # Entidades de Domínio
+│       ├── Services/           # Serviços de aplicação
+│       ├── Program.cs          # Configuração principal da API
+│       └── ...
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/         # Componentes Vue
+│   │   ├── store/              # Pinia stores (estado global)
+│   │   ├── views/              # Páginas principais
+│   │   └── App.vue             # Raiz da aplicação Vue
+│   └── ...
+│
+├── docker-compose.yml          # Orquestração dos containers
+├── nginx.conf                  # Configuração do proxy reverso
+└── README.md                   # Documentação do projeto
+```
 
 ## 🏁 Como Começar (Ambiente de Desenvolvimento)
 
-Siga os passos abaixo para rodar o projeto localmente.
-
 ### Pré-requisitos
 
-- [Docker](https://www.docker.com/products/docker-desktop/) e Docker Compose
-- [.NET SDK 8.0](https://dotnet.microsoft.com/download/dotnet/8.0)
-- [Node.js 20+](https://nodejs.org/)
+- [Docker](https://www.docker.com/products/docker-desktop/) e Docker Compose  
+- [.NET SDK 8.0](https://dotnet.microsoft.com/download/dotnet/8.0)  
+- [Node.js 20+](https://nodejs.org/)  
 
 ### Instalação
 
-1.  **Clone o repositório:**
-    ```bash
-    git clone [https://github.com/rvwierzba/lead2buy-crm.git](https://github.com/rvwierzba/lead2buy-crm.git)
-    cd lead2buy-crm
-    ```
+1. **Clone o repositório:**
+   ```bash
+   git clone https://github.com/rvwierzba/lead2buy-crm.git
+   cd lead2buy-crm
 
-2.  **Crie o arquivo de configuração de ambiente (`.env`):**
-    Na raiz do projeto, crie um arquivo chamado `.env` e adicione as seguintes variáveis. Substitua os valores de exemplo pelas suas credenciais.
-    ```env
-    # Credenciais do Banco de Dados
-    POSTGRES_USER=postgres
-    POSTGRES_PASSWORD=sua-senha-super-secreta
-    POSTGRES_DB=lead2buy_db
 
-    # Chaves para autenticação JWT
-    JWT_KEY=uma-chave-secreta-muito-longa-e-dificil-de-adivinhar-com-pelo-menos-32-caracteres
-    JWT_ISSUER=Lead2BuyAPI
-    JWT_AUDIENCE=Lead2BuyApp
+# Banco de Dados
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=sua-senha-super-secreta
+POSTGRES_DB=lead2buy_db
 
-    # Credenciais do Mailjet (para envio de e-mail)
-    MAILJET_API_KEY=sua-api-key-do-mailjet
-    MAILJET_SECRET_KEY=sua-secret-key-do-mailjet
-    MAILJET_FROM_EMAIL=seu-email-verificado-no-mailjet
-    ```
+# JWT
+JWT_KEY=uma-chave-secreta-muito-longa-e-dificil-de-adivinhar-com-pelo-menos-32-caracteres
+JWT_ISSUER=Lead2BuyAPI
+JWT_AUDIENCE=Lead2BuyApp
 
-3.  **Construa e inicie os contêineres:**
-    Este comando irá construir as imagens da API, do Nginx (com o frontend) e do Ollama, além de iniciar todos os serviços.
-    ```bash
-    docker-compose up -d --build
-    ```
+# Mailjet
+MAILJET_API_KEY=sua-api-key-do-mailjet
+MAILJET_SECRET_KEY=sua-secret-key-do-mailjet
+MAILJET_FROM_EMAIL=seu-email-verificado-no-mailjet
 
-4.  **Acesse a aplicação:**
-    Após a conclusão do build, a aplicação estará disponível em `http://localhost`.
+# Redis
+REDIS_CONNECTION_STRING=localhost:6379
+
+# CORS
+CORS_ORIGIN=https://crm.rvwtech.com.br
+
+```
+docker-compose up -d --build
+```
+
+## 🌐 URLs de Acesso em Produção
+
+- **Frontend:** [https://crm.rvwtech.com.br](https://crm.rvwtech.com.br)  
+- **API:** [https://crm.rvwtech.com.br/api](https://crm.rvwtech.com.br/api)  
+- **Swagger (documentação):** [https://crm.rvwtech.com.br/swagger](https://crm.rvwtech.com.br/swagger)  
+- **SignalR Hub:** [https://crm.rvwtech.com.br/notificationHub](https://crm.rvwtech.com.br/notificationHub)  
+
+---
 
 ## 📚 Documentação da API
 
-A documentação completa da API está disponível via Swagger e pode ser acessada em `http://localhost/swagger` quando o ambiente estiver rodando.
+A documentação completa da API está disponível via **Swagger** em:  
+[https://crm.rvwtech.com.br/swagger](https://crm.rvwtech.com.br/swagger)
 
 ---
+
+## 🌐 Deploy em Produção
+
+- **Servidor:** VPS Debian 13 (LocalWeb)  
+- **Domínio:** [crm.rvwtech.com.br](https://crm.rvwtech.com.br)  
+- **Proxy reverso:** Nginx configurado para redirecionar tráfego HTTPS para os containers.  
+- **Certificado SSL:** Gerenciado via **Let's Encrypt (Certbot)** com renovação automática.  
+- **Deploy:**  
+  ```bash
+  git pull origin main
+  docker-compose up -d --build
+
+
+## 📈 Roadmap
+
+    [x] Gestão de contatos, funil e tarefas
+
+    [x] Autenticação JWT e notificações em tempo real
+
+    [ ] Multiusuário com papéis e histórico de eficiência
+
+    [ ] Calendário por usuário
+
+    [ ] Timeline do lead
+
+    [ ] Integração com n8n (Evolution)
+
+    [ ] Módulo de BI com IA
+
+
+
+   ## 📌 Padrões de Arquitetura e Design
+
+    Backend: Seguir Clean Architecture (separação clara entre Domínio, Aplicação, Infraestrutura e Apresentação).
+
+    Frontend: Manter identidade visual já definida (cores, dark/light mode, tipografia).
+
+    Código: Seguir boas práticas de SOLID, DRY e reutilização de componentes.
+
+    Banco: PostgreSQL como persistência principal, sempre versionado via migrations.
+
+    Infraestrutura: Todos os serviços devem ser conteinerizados (Docker).
+
+    Segurança: JWT com chave de no mínimo 32 caracteres, HTTPS obrigatório em produção.
+
+

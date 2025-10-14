@@ -13,7 +13,7 @@ namespace Lead2Buy.API.Models
 
     public class ChatJob
     {
-        public int Id { get; set; }
+         public Guid Id { get; set; } = new Guid();
 
         [Required]
         public string UserPrompt { get; set; } = string.Empty; // A pergunta do usuário
@@ -28,7 +28,7 @@ namespace Lead2Buy.API.Models
         public DateTime? CompletedAt { get; set; }
 
         // Chave Estrangeira para o Usuário que solicitou
-        public int UserId { get; set; }
+        public Guid UserId { get; set; }
         public User? User { get; set; }
     }
 }

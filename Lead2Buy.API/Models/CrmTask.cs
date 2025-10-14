@@ -4,7 +4,7 @@ namespace Lead2Buy.API.Models
 {
     public class CrmTask
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }  
 
         [Required]
         [MaxLength(200)]
@@ -12,20 +12,17 @@ namespace Lead2Buy.API.Models
 
         public string? Description { get; set; }
 
-        public DateTime DueDate { get; set; } // Data de Vencimento
+        public DateTime DueDate { get; set; } // Data de vencimento
 
-        public bool IsCompleted { get; set; } = false; // Começa como não concluída
+        public bool IsCompleted { get; set; } = false;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        // --- Relacionamentos (Chaves Estrangeiras) ---
-
-        // Tarefa associada a um Contato
-        public int ContactId { get; set; }
+        // --- Relacionamentos ---
+        public Guid ContactId { get; set; }
         public Contact? Contact { get; set; }
 
-        // Tarefa associada a um Usuário (quem deve executá-la)
-        public int UserId { get; set; }
+        public Guid UserId { get; set; }
         public User? User { get; set; }
     }
 }

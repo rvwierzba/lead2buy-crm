@@ -19,6 +19,6 @@ public class ContactImportDtoMap : ClassMap<ContactImportDto>
         Map(m => m.City).Optional();
         Map(m => m.State).Optional();
         Map(m => m.Observations).Optional();
-        Map(m => m.Status).Optional();
+        Map(m => m.Status).Name("Status").Name("FunnelStage");
     }
 }

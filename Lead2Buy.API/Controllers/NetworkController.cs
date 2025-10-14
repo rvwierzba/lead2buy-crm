@@ -20,7 +20,7 @@ namespace Lead2Buy.API.Controllers
             _context = context;
         }
 
-        private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        private Guid GetUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         [HttpGet]
         public async Task<IActionResult> GetNetworkContacts()
@@ -74,7 +74,7 @@ namespace Lead2Buy.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateNetworkContact(int id, [FromBody] CreateNetworkContactDto dto)
+        public async Task<IActionResult> UpdateNetworkContact(Guid id, [FromBody] CreateNetworkContactDto dto)
         {
             var userId = GetUserId();
             var contact = await _context.NetworkContacts.FirstOrDefaultAsync(nc => nc.Id == id && nc.UserId == userId);
@@ -103,7 +103,7 @@ namespace Lead2Buy.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteNetworkContact(int id)
+        public async Task<IActionResult> DeleteNetworkContact(Guid id)
         {
             var userId = GetUserId();
             var contact = await _context.NetworkContacts.FirstOrDefaultAsync(nc => nc.Id == id && nc.UserId == userId);

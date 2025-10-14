@@ -4,8 +4,8 @@ namespace Lead2Buy.API.DTOs.Network
 {
     public class NetworkContactDto
     {
-        public int Id { get; set; }
-        public required string Name { get; set; }
+        public Guid Id { get; set; } = new Guid();
+        public string Name { get; set; } = string.Empty;
         public string? PhoneNumber { get; set; }
         public string? Email { get; set; }
         public string? LinkedInUrl { get; set; }
